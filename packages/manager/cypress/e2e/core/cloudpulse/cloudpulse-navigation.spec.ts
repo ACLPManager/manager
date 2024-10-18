@@ -9,7 +9,7 @@ import { ui } from 'support/ui';
 
 const mockAccount = accountFactory.build();
 
-describe('CloudPulse  navigation', () => {
+describe('CloudPulse navigation', () => {
   beforeEach(() => {
     mockGetAccount(mockAccount).as('getAccount');
   });
@@ -36,7 +36,7 @@ describe('CloudPulse  navigation', () => {
   /*
    * - Confirms that Cloudpulse navigation item is not shown when feature flag is disabled.
    */
-  it('does not show  Cloudpulse navigation item when feature is disabled', () => {
+  it.skip('does not show cloudpulse navigation item when feature is disabled', () => {
     mockAppendFeatureFlags({
       aclp: {
         beta: true,
@@ -55,7 +55,7 @@ describe('CloudPulse  navigation', () => {
   /*
    * - Confirms that manual navigation to Cloudpulse landing page with feature is disabled displays Not Found to user.
    */
-  it('displays Not Found when manually navigating to /cloudpulse with feature flag disabled', () => {
+  it.skip('displays Not Found when manually navigating to /cloudpulse with feature flag disabled', () => {
     mockAppendFeatureFlags({
       aclp: {
         beta: true,

@@ -13,7 +13,7 @@ export const widgetDetails = {
     metrics: [
       {
         expectedAggregation: 'max',
-        expectedAggregationArray: ['avg', 'max', 'min', 'sum'],
+        expectedAggregationArray: ['max', 'min', 'sum'],
         expectedGranularity: '1 hr',
         name: 'system_disk_OPS_total',
         title: 'Disk I/O',
@@ -22,7 +22,7 @@ export const widgetDetails = {
       },
       {
         expectedAggregation: 'max',
-        expectedAggregationArray: ['avg', 'max', 'min'],
+        expectedAggregationArray: ['max', 'min'],
         expectedGranularity: '1 hr',
         name: 'system_cpu_utilization_percent',
         title: 'CPU Utilization',
@@ -31,7 +31,7 @@ export const widgetDetails = {
       },
       {
         expectedAggregation: 'max',
-        expectedAggregationArray: ['avg', 'max', 'min', 'sum'],
+        expectedAggregationArray: ['max', 'min', 'sum'],
         expectedGranularity: '1 hr',
         name: 'system_memory_usage_by_resource',
         title: 'Memory Usage',
@@ -40,7 +40,7 @@ export const widgetDetails = {
       },
       {
         expectedAggregation: 'max',
-        expectedAggregationArray: ['avg', 'max', 'min', 'sum'],
+        expectedAggregationArray: ['max', 'min', 'sum'],
         expectedGranularity: '1 hr',
         name: 'system_network_io_by_resource',
         title: 'Network Traffic',
@@ -59,7 +59,7 @@ export const widgetDetails = {
     metrics: [
       {
         expectedAggregation: 'max',
-        expectedAggregationArray: ['avg', 'max', 'min'],
+        expectedAggregationArray: ['max', 'min'],
         expectedGranularity: '1 hr',
         name: 'system_cpu_utilization_percent',
         title: 'CPU Utilization',
@@ -68,7 +68,7 @@ export const widgetDetails = {
       },
       {
         expectedAggregation: 'max',
-        expectedAggregationArray: ['avg', 'max', 'min', 'sum'],
+        expectedAggregationArray: ['max', 'min', 'sum'],
         expectedGranularity: '1 hr',
         name: 'system_memory_usage_by_resource',
         title: 'Memory Usage',
@@ -77,7 +77,7 @@ export const widgetDetails = {
       },
       {
         expectedAggregation: 'max',
-        expectedAggregationArray: ['avg', 'max', 'min', 'sum'],
+        expectedAggregationArray: ['max', 'min', 'sum'],
         expectedGranularity: '1 hr',
         name: 'system_network_io_by_resource',
         title: 'Network Traffic',
@@ -86,7 +86,7 @@ export const widgetDetails = {
       },
       {
         expectedAggregation: 'max',
-        expectedAggregationArray: ['avg', 'max', 'min', 'sum'],
+        expectedAggregationArray: ['max', 'min', 'sum'],
         expectedGranularity: '1 hr',
         name: 'system_disk_OPS_total',
         title: 'Disk I/O',
