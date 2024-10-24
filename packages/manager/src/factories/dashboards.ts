@@ -7,6 +7,7 @@ import type {
   Dashboard,
   Widgets,
 } from '@linode/api-v4';
+import type { UserPreferences } from '@linode/api-v4/src/profile';
 
 const color = ['blue', 'red', 'green', 'yellow'];
 const chart_type = ['area', 'area', 'area', 'line'];
@@ -65,8 +66,8 @@ export const dashboardMetricFactory = Factory.Sync.makeFactory<AvailableMetrics>
   }
 );
 
-export const cloudPulseMetricsResponseDataFactory = Factory.Sync.makeFactory<CloudPulseMetricsResponseData>(
-  {
+export const cloudPulseMetricsResponseDataFactory =
+  Factory.Sync.makeFactory<CloudPulseMetricsResponseData>({
     result: [
       {
         metric: {},
@@ -85,5 +86,18 @@ export const cloudPulseMetricsResponseFactory = Factory.Sync.makeFactory<CloudPu
       series_fetched: 2,
     },
     status: 'success',
+  }
+);
+
+export const userPreferencesFactory = Factory.Sync.makeFactory<UserPreferences>(
+  {
+    aclpPreference: {
+      dashboardId: 'default-id',
+      engine: 'default-engine',
+      region: 'us-ord',
+      resources: ['1'],
+      role: 'default-role',
+      widgets: {},
+    },
   }
 );
