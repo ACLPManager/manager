@@ -127,3 +127,11 @@ export const deleteAlertDefinition = (serviceType: string, alertId: number) =>
     ),
     setMethod('DELETE'),
   );
+
+export const deleteAlertDefinition = (serviceType: string, alertId: number) =>
+  Request<Alert>(
+    setURL(
+      `${API_ROOT}/monitor/services/${encodeURIComponent(serviceType)}/alert-definitions/${encodeURIComponent(alertId)}`,
+    ),
+    setMethod('DELETE'),
+  );
