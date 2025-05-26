@@ -216,6 +216,9 @@ describe('Integration Tests for Alert Show Detail Page', () => {
           timezone: 'GMT',
         })
       ).should('be.visible');
+
+      cy.findByText('Scope:').should('be.visible');
+      cy.findByText('Entity').should('be.visible');
     });
 
     // Validating contents of Criteria Section

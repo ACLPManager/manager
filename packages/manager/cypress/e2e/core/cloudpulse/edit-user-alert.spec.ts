@@ -65,6 +65,7 @@ const alertDetails = alertFactory.build({
   trigger_conditions: triggerConditionFactory.build(),
   type: 'user',
   updated: new Date().toISOString(),
+  group: 'per-entity',
 });
 
 const { description, id, label, service_type, updated } = alertDetails;
