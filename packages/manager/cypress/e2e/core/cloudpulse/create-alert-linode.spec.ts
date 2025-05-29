@@ -105,6 +105,7 @@ const mockAlerts = alertFactory.build({
   tags: ['tag-2', 'tag-3'],
   trigger_conditions: triggerConditionFactory.build(),
   updated: new Date().toISOString(),
+  group: 'per-entity',
 });
 const mockProfile = profileFactory.build({
   timezone: 'gmt',
@@ -196,14 +197,18 @@ describe('Create Alert', () => {
     // Select Severity
     ui.autocomplete.findByLabel('Severity').should('be.visible').type('Severe');
     ui.autocompletePopper.findByTitle('Severe').should('be.visible').click();
+    ui.autocomplete
+      .findByLabel('Scope')
+      .should('be.visible')
+      .clear()
+      .type('Entity');
+
+    ui.autocompletePopper.findByTitle('Entity').should('be.visible').click();
 
     // Search for Entity
     cy.findByPlaceholderText('Search for a Region or Entity')
       .should('be.visible')
       .type('linode-resource');
-
-    // Search for Entity
-    //cy.findByPlaceholderText('Select Tags').should('be.visible').type('tag-2');
 
     // Find the table and locate the entity cell containing 'database-2', then check the corresponding checkbox
     cy.get('[data-qa-alert-table="true"]') // Find the table
@@ -222,9 +227,6 @@ describe('Create Alert', () => {
     ui.heading
       .findByText('region')
       .should('have.attr', 'aria-sort', 'ascending');
-    /* ui.heading.findByText('tags').should('be.visible');
-    ui.heading.findByText('tags').should('have.attr', 'aria-sort', 'ascending');*/
-
     // Assert resource selection notice
     cy.findByText('1 of 10 entities are selected.');
 

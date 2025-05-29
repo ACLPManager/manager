@@ -170,10 +170,15 @@ describe('Integration Tests for Alert Show Detail Page', () => {
           cy.contains('tr', region).should('exist');
         });
       });
+      const expectedMessage =
+        'This alert applies to all entities associated with selected regions, and will be applied to any new entities that are added. The alert is triggered per entity rather than being based on the aggregated data for all entities.';
+      cy.get('[data-qa-notice="true"]')
+        .find('[data-testid="alert_message_notice"]') // Note the typo in the attribute
+        .should('have.text', expectedMessage);
     },
     Account: () => {
       const expectedMessage =
-        'All entities associated with current account will be included in this alert definition. Any new entity created with this account will also be included.';
+        'This alert applies to all entities associated with your account, and will be applied to any new entities that are added. The alert is triggered per entity rather than being based on the aggregated data for all entities.';
       cy.get('[data-qa-notice="true"]')
         .find('[data-testid="alert_message_notice"]') // Note the typo in the attribute
         .should('have.text', expectedMessage);
