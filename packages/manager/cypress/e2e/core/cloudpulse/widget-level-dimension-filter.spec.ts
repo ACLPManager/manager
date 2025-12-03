@@ -293,7 +293,7 @@ describe('Cloud pulse widget level dimension filter ', () => {
      */
   });
 
-  it('should verify initial UI state of the filter drawer  - test apply, add and delete)', () => {
+  it('should verify initial UI state of the filter drawer - test apply, add and delete', () => {
     ui.tooltip.findByText(DIMENSION_FILTERS_TEXT).should(VISIBLE);
     ui.drawer.find().should('not.exist');
 
