@@ -816,6 +816,13 @@ export const handlers = [
     const linodesWithFirewall = linodeFactory.buildList(10, {
       region: 'ap-west',
     });
+    const linodesWithAclpAlerts = linodeFactory.buildList(10, {
+      region: 'ap-west',
+      alerts: {
+        system_alerts: [1, 2, 3, 4, 5],
+        user_alerts: [6, 7, 8, 9, 10],
+      },
+    });
     const metadataLinodeWithCompatibleImage = linodeFactory.build({
       image: 'metadata-test-image',
       label: 'metadata-test-image',
@@ -903,6 +910,7 @@ export const handlers = [
     });
     const linodes = [
       ...linodesWithFirewall,
+      ...linodesWithAclpAlerts,
       ...mtcLinodes,
       ...aclpSupportedRegionLinodes,
       nonMTCPlanInMTCSupportedRegionsLinode,
@@ -3567,9 +3575,17 @@ export const handlers = [
     return HttpResponse.json({});
   }),
   http.get('*/monitor/alert-channels', () => {
-    return HttpResponse.json(
-      makeResourcePage(notificationChannelFactory.buildList(7))
+    const notificationChannels = notificationChannelFactory.buildList(3);
+    notificationChannels.push(
+      notificationChannelFactory.build({
+        label: 'Email test channel',
+        updated: '2023-11-05T04:00:00',
+        updated_by: 'user3',
+        created_by: 'admin',
+      })
     );
+    notificationChannels.push(...notificationChannelFactory.buildList(75));
+    return HttpResponse.json(makeResourcePage(notificationChannels));
   }),
   http.delete('*/monitor/services/:serviceType/alert-definitions/:id', () => {
     return HttpResponse.json({});
