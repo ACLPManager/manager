@@ -66,7 +66,7 @@ const getFiltersForMetric = (metricName: string) => {
   return metric.filters.map((filter) => ({
     dimension_label: filter.dimension_label,
     label: filter.dimension_label,
-    values: filter.value ? [filter.value] : undefined,
+    values: filter.value ? filter.value : undefined,
   }));
 };
 

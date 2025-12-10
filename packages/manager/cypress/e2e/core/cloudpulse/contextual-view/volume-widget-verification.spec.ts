@@ -45,14 +45,14 @@ const dimensions = [
   { label: 'Region', dimension_label: 'region', value: 'us-ord' },
 ];
 
-// Convert widget filters to dashboard filters
 const getFiltersForMetric = (metricName: string) => {
   const metric = metrics.find((m) => m.name === metricName);
   if (!metric) return [];
+
   return metric.filters.map((filter) => ({
     dimension_label: filter.dimension_label,
     label: filter.dimension_label,
-    values: filter.value ? [filter.value] : undefined,
+    values: filter.value ? filter.value : undefined,
   }));
 };
 
