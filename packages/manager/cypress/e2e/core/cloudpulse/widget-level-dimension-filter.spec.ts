@@ -600,8 +600,8 @@ describe('Widget level dimension filter ', () => {
   });
 
   // Have a global filter for dashboard and now for each widget verify the widget level filters are the ones not in the global filters
-  it.only('should verify that widget level filters exclude global dashboard filters for all widgets', () => {
-    const globalFilters = ['region', 'volume_id', 'Port', 'Protocol'];
+  it('should verify that widget level filters exclude global dashboard filters for all widgets', () => {
+    const globalFilters = ['region', 'volume_id', 'Port'];
 
     dashboard.widgets.forEach((widget, index) => {
       openFilterDrawer(index);
