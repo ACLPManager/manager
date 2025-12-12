@@ -316,7 +316,7 @@ describe('Widget level dimension filter ', () => {
 
     ui.drawer.find().should('not.exist');
     // Open the filter drawer
-    openFilterDrawer(0);
+    openFilterDrawer();
     // Verify drawer content for apply
     verifyDrawerContent();
 
@@ -369,12 +369,12 @@ describe('Widget level dimension filter ', () => {
       { dimension: 'entity_id', operator: 'Equal', value: '123' },
     ];
 
-    filters.forEach((filter, index) =>
+    filters.forEach(({ dimension, operator, value }, index) =>
       addFilter({
         index,
-        dimension: filter.dimension,
-        operator: filter.operator,
-        value: filter.value,
+        dimension,
+        operator,
+        value,
       })
     );
 
@@ -402,11 +402,11 @@ describe('Widget level dimension filter ', () => {
       expect(interception.request.body.filters).to.have.length(5);
 
       // Verify the order and values of filters applied
-      filters.forEach((filter, index) => {
+      filters.forEach(({ dimension, value }, index) => {
         const appliedFilter = interception.request.body.filters[index];
-        expect(appliedFilter.dimension_label).to.equal(filter.dimension);
+        expect(appliedFilter.dimension_label).to.equal(dimension);
         expect(appliedFilter.operator).to.equal('eq');
-        expect(appliedFilter.value).to.equal(filter.value);
+        expect(appliedFilter.value).to.equal(value);
       });
     });
   });
@@ -422,12 +422,12 @@ describe('Widget level dimension filter ', () => {
       { dimension: 'entity_id', operator: 'Equal', value: '123' },
     ];
 
-    filters.forEach((filter, index) =>
+    filters.forEach(({ dimension, operator, value }, index) =>
       addFilter({
         index,
-        dimension: filter.dimension,
-        operator: filter.operator,
-        value: filter.value,
+        dimension,
+        operator,
+        value,
       })
     );
     ui.button.findByAttribute('label', 'Apply').click();
@@ -474,11 +474,11 @@ describe('Widget level dimension filter ', () => {
 
       // Verify first and last filters are removed
       const remainingFilters = filters.slice(1, 4);
-      remainingFilters.forEach((filter, index) => {
+      remainingFilters.forEach(({ dimension, value }, index) => {
         const appliedFilter = interception.request.body.filters[index];
-        expect(appliedFilter.dimension_label).to.equal(filter.dimension);
+        expect(appliedFilter.dimension_label).to.equal(dimension);
         expect(appliedFilter.operator).to.equal('eq');
-        expect(appliedFilter.value).to.equal(filter.value);
+        expect(appliedFilter.value).to.equal(value);
       });
     });
   });
@@ -553,12 +553,12 @@ describe('Widget level dimension filter ', () => {
       { dimension: 'response_type', operator: 'Equal', value: '2xx' },
     ];
 
-    filters.forEach((filter, index) =>
+    filters.forEach(({ dimension, operator, value }, index) =>
       addFilter({
         index,
-        dimension: filter.dimension,
-        operator: filter.operator,
-        value: filter.value,
+        dimension,
+        operator,
+        value,
       })
     );
 
@@ -866,11 +866,11 @@ describe('Widget level dimension filter ', () => {
         { dimension: 'response_type', operator: 'eq', value: '5xx' },
       ];
 
-      expectedFilters.forEach((filter, index) => {
+      expectedFilters.forEach(({ dimension, operator, value }, index) => {
         const appliedFilter = interception.request.body.filters[index];
-        expect(appliedFilter.dimension_label).to.equal(filter.dimension);
-        expect(appliedFilter.operator).to.equal(filter.operator);
-        expect(appliedFilter.value).to.equal(filter.value);
+        expect(appliedFilter.dimension_label).to.equal(dimension);
+        expect(appliedFilter.operator).to.equal(operator);
+        expect(appliedFilter.value).to.equal(value);
       });
     });
   });
