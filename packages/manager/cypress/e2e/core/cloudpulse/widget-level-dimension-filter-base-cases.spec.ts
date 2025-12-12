@@ -416,7 +416,7 @@ describe('Widget level dimension filter ', () => {
     });
   });
 
-  it('shoud verify edit filter case - add, delete, update filter and validate API response', () => {
+  it('should verify edit filter case - add, delete, update filter and validate API response', () => {
     const widgetIndex = 0;
 
     // Open the filter drawer
@@ -491,7 +491,7 @@ describe('Widget level dimension filter ', () => {
             .findByTitle('Select All')
             .should('be.visible')
             .click();
-         //Close the popper
+          // Close the popper
           ui.autocompletePopper.find().click('topRight');
         } else {
           cy.get(
