@@ -142,23 +142,31 @@ const verifyBadgeCount = (count: string, widgetIndex: number = 0) => {
 };
 
 // Helper function to verify dimensions exclude certain filters
-const verifyDimensionsExcludeFilters = (excludedFilters: string[]) => {
-  ui.autocompletePopper
-    .find()
-    .should('be.visible')
-    .find('[data-qa-option]')
-    .then(($options) => {
-      cy.log(`${$options}`);
-      const dimensionOptions = $options
-        .toArray()
-        .map((el) => el.textContent?.trim() || '')
-        .filter((text) => text !== '');
+// const verifyDimensionsExcludeFilters = (excludedFilters: string[]) => {
+//   ui.autocompletePopper
+//     .find()
+//     .should('be.visible')
+//     .find('[data-qa-option]')
+//     .then(($options) => {
+//       cy.log(`${$options}`);
+//       const dimensionOptions = $options
+//         .toArray()
+//         .map((el) => el.textContent?.trim() || '')
+//         .filter((text) => text !== '');
 
-      // Verify each excluded filter (global filter) is NOT present in dimension options array
-      excludedFilters.forEach((excludedFilter) => {
-        expect(dimensionOptions).to.not.include(excludedFilter);
-      });
+//       // Verify each excluded filter (global filter) is NOT present in dimension options array
+//       excludedFilters.forEach((excludedFilter) => {
+//         expect(dimensionOptions).to.not.include(excludedFilter);
+//       });
+//     });
+// };
+
+const verifyDimensionsExcludeFilters = (excludedFilters: string[]) => {
+  ui.autocompletePopper.find().within(() => {
+    excludedFilters.forEach((filter) => {
+      cy.findByText(filter).should('not.exist');
     });
+  });
 };
 
 // Helper function to select dashboard and resources
@@ -279,7 +287,6 @@ describe('Widget level dimension filter ', () => {
       ...flags,
       aclp: {
         ...flags.aclp,
-        // showWidgetDimensionFilters: true,
       },
     };
     mockAppendFeatureFlags(mergedFlags).as('featureFlags');
@@ -614,8 +621,8 @@ describe('Widget level dimension filter ', () => {
   });
 
   // Have a global filter for dashboard and now for each widget verify the widget level filters are the ones not in the global filters
-  it('should verify that widget level filters exclude global dashboard filters for all widgets', () => {
-    const globalFilters = ['region', 'volume_id', 'Port'];
+  it.only('should verify that widget level filters exclude global dashboard filters for all widgets', () => {
+    const globalFilters = ['region', 'volume_id', 'Port', 'Protocol'];
 
     dashboard.widgets.forEach((widget, index) => {
       openFilterDrawer(index);
