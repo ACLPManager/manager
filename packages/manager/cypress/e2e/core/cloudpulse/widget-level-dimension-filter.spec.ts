@@ -142,30 +142,9 @@ const verifyBadgeCount = (count: string, widgetIndex: number = 0) => {
 };
 
 // Helper function to verify dimensions exclude certain filters
-// const verifyDimensionsExcludeFilters = (excludedFilters: string[]) => {
-//   ui.autocompletePopper
-//     .find()
-//     .should('be.visible')
-//     .find('[data-qa-option]')
-//     .then(($options) => {
-//       cy.log(`${$options}`);
-//       const dimensionOptions = $options
-//         .toArray()
-//         .map((el) => el.textContent?.trim() || '')
-//         .filter((text) => text !== '');
-
-//       // Verify each excluded filter (global filter) is NOT present in dimension options array
-//       excludedFilters.forEach((excludedFilter) => {
-//         expect(dimensionOptions).to.not.include(excludedFilter);
-//       });
-//     });
-// };
-
 const verifyDimensionsExcludeFilters = (excludedFilters: string[]) => {
-  ui.autocompletePopper.find().within(() => {
-    excludedFilters.forEach((filter) => {
-      cy.findByText(filter).should('not.exist');
-    });
+  excludedFilters.forEach((filter) => {
+    cy.findByText(filter, { timeout: 5000 }).should('not.exist');
   });
 };
 
