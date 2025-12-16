@@ -299,17 +299,17 @@ describe('Integration Tests for Object Storage Dashboard ', () => {
       .should('be.visible')
       .click();
 
-   // Select a time duration from the autocomplete input.
-   ui.button.findByTitle('Last hour').as('timeRangeTrigger');
-   cy.get('@timeRangeTrigger').click();
+    // Select a time duration from the autocomplete input.
+    ui.button.findByTitle('Last hour').as('timeRangeTrigger');
+    cy.get('@timeRangeTrigger').click();
 
-   // select a different preset but cancel
-   ui.button.findByTitle('Last day').click();
+    // select a different preset but cancel
+    ui.button.findByTitle('Last day').click();
 
-   cy.get('[data-qa-buttons="apply"]')
-     .should('be.visible')
-     .should('be.enabled')
-     .click();
+    cy.get('[data-qa-buttons="apply"]')
+      .should('be.visible')
+      .should('be.enabled')
+      .click();
 
     //  Select a region from the dropdown.
     ui.regionSelect.find().clear();
@@ -332,6 +332,10 @@ describe('Integration Tests for Object Storage Dashboard ', () => {
 
     // Wait for all metrics query requests to resolve.
     cy.wait(['@getMetrics', '@getMetrics', '@getMetrics', '@getMetrics']);
+    // Ensure loading indicators have disappeared
+    cy.get('[aria-label="Content is loading"]', { timeout: 30000 }).should(
+      'not.exist'
+    );
   });
   it('should apply group by at the dashboard level and verify the metrics API calls', () => {
     // Stub metrics API calls for dashboard group by changes
