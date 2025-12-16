@@ -361,8 +361,6 @@ describe('Integration tests for verifying Cloudpulse custom and preset configura
       .and('be.enabled')
       .click();
 
-    ui.button.findByTitle('Reset').should('be.visible').click();
-
     // --- Re-validate after apply ---
     cy.get('[aria-labelledby="start-date"]').should(
       'have.value',
@@ -398,7 +396,11 @@ describe('Integration tests for verifying Cloudpulse custom and preset configura
     mockCreateCloudPulseMetrics(serviceType, metricsAPIResponsePayload).as(
       'getPresets'
     );
-    ui.button.findByTitle('Reset').should('be.visible').click();
+
+    // Open the date range picker to apply the "Last 30 Days" preset
+
+    cy.get('[aria-labelledby="start-date"]').parent().as('startDateInput');
+    cy.get('@startDateInput').click();
 
     ui.button.findByTitle('Last 30 days').should('be.visible').click();
 
