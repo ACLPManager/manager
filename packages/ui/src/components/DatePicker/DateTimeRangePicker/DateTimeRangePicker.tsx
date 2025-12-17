@@ -52,9 +52,11 @@ export interface DateTimeRangePickerProps {
     timeZone: null | string;
   }) => void;
 
+  /** Callback when the popover is closed */
   onClose?: (selectedPreset: string) => void;
 
-  openCalender?: boolean;
+  /** Property to control whether the calendar popover is open */
+  openCalendar?: boolean;
 
   /** Additional settings for the presets dropdown */
   presetsProps?: {
@@ -112,7 +114,7 @@ export const DateTimeRangePicker = ({
   startDateProps,
   sx,
   timeZoneProps,
-  openCalender,
+  openCalendar,
   onClose,
 }: DateTimeRangePickerProps) => {
   const [startDate, setStartDate] = useState<DateTime | null>(
@@ -128,7 +130,7 @@ export const DateTimeRangePicker = ({
     startDateProps?.errorMessage,
   );
   const [endDateError, setEndDateError] = useState(endDateProps?.errorMessage);
-  const [open, setOpen] = useState(openCalender ?? false);
+  const [open, setOpen] = useState(openCalendar ?? false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [currentMonth, setCurrentMonth] = useState(DateTime.now());
   const [focusedField, setFocusedField] = useState<'end' | 'start'>('start'); // Tracks focused input field
@@ -288,12 +290,21 @@ export const DateTimeRangePicker = ({
         startDateInputRef.current?.parentElement || startDateInputRef.current,
       );
     }
-  }, [anchorEl]);
+  }, []);
 
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
       <Box>
-        <Stack direction="row" spacing={2} sx={sx}>
+        <Stack
+          sx={(theme) => ({
+            sx,
+            gap: theme.spacingFunction(16),
+            flexDirection: 'row',
+            [theme.breakpoints.down('md')]: {
+              flexDirection: 'column',
+            },
+          })}
+        >
           <DateTimeField
             errorText={startDateError}
             format={format}
@@ -328,7 +339,7 @@ export const DateTimeRangePicker = ({
           anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
           disableAutoFocus
           onClose={(event, reason) => {
-            // ✅ Block close only if clickaway
+            // Block close only if clickaway
             if (reason === 'backdropClick') return;
 
             handleClose();
