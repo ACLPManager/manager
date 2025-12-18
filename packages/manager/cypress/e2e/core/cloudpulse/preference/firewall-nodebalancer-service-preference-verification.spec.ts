@@ -219,6 +219,9 @@ describe('Integration Tests for firewall nodebalancer Dashboard ', () => {
       });
 
     ui.button.findByTitle('Filters').click();
+    cy.get('[aria-label="Content is loading"]', { timeout: 30000 }).should(
+      'not.exist'
+    );
     cy.scrollTo('top');
   });
   it('reloads the page and verifies preferences are restored from API', () => {

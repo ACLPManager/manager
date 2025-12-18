@@ -203,6 +203,10 @@ describe('Integration Tests for Linode Dashboard Preferences', () => {
       .should('be.visible')
       .and('be.enabled')
       .click();
+
+    cy.get('[aria-label="Content is loading"]', { timeout: 30000 }).should(
+      'not.exist'
+    );
     cy.scrollTo('top');
   });
   it('clears the Dashboard filters and verifies updated user preferences', () => {

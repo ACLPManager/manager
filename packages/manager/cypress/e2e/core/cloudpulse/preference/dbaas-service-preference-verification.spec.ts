@@ -231,6 +231,9 @@ describe('Integration Tests for DBaaS Dashboard Preferences', () => {
         .and('have.text', 'mysql-cluster');
     });
     ui.button.findByTitle('Filters').click();
+    cy.get('[aria-label="Content is loading"]', { timeout: 30000 }).should(
+      'not.exist'
+    );
     cy.scrollTo('top');
   });
 
@@ -280,7 +283,7 @@ describe('Integration Tests for DBaaS Dashboard Preferences', () => {
       ).should('have.value', 'Primary');
     });
     // Select a time duration from the autocomplete input.
-    ui.button.findByTitle('Last hour').as('timeRangeTrigger');
+    ui.button.findByTitle('Last day').as('timeRangeTrigger');
     cy.get('@timeRangeTrigger').click();
 
     ui.buttonGroup

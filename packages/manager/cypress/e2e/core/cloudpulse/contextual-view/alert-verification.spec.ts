@@ -12,6 +12,7 @@ import {
 } from 'support/intercepts/cloudpulse';
 import { mockAppendFeatureFlags } from 'support/intercepts/feature-flags';
 import { mockGetLinodes } from 'support/intercepts/linodes';
+import { mockGetUserPreferences } from 'support/intercepts/profile';
 import { mockGetRegions } from 'support/intercepts/regions';
 import { ui } from 'support/ui';
 import { cleanUp } from 'support/util/cleanup';
@@ -215,6 +216,9 @@ describe('update linode label', () => {
         'deleteEntityToAlert'
       );
       mockGetRegions([mockRegion]);
+      mockGetUserPreferences({ isAclpMetricsBeta: true }).as(
+        'fetchPreferences'
+      );
 
       // Visit the database alerts page
       cy.visitWithLogin(`/linodes/${linode.id}/alerts`);

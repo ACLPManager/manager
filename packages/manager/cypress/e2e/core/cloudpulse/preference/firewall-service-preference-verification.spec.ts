@@ -150,6 +150,15 @@ describe('Integration Tests for firewall linode Dashboard ', () => {
       });
 
     ui.button.findByTitle('Filters').click();
+    cy.get('[aria-label="Content is loading"]', { timeout: 30000 }).should(
+      'not.exist'
+    );
+    cy.get('[aria-label="Content is loading"]', { timeout: 30000 }).should(
+      'not.exist'
+    );
+    cy.get('[aria-label="Content is loading"]', { timeout: 30000 }).should(
+      'not.exist'
+    );
     cy.scrollTo('top');
   });
 
