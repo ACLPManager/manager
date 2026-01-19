@@ -24,7 +24,7 @@ import { UPDATE_CHANNEL_SUCCESS_MESSAGE } from 'src/features/CloudPulse/Alerts/c
 // Define mock data for the test.
 
 const mockAccount = accountFactory.build();
-const mockusers = [
+const mockUsers = [
   accountUserFactory.build({ username: 'user1' }),
   accountUserFactory.build({ username: 'user2' }),
   ...accountUserFactory.buildList(6),
@@ -33,7 +33,7 @@ const mockProfile = profileFactory.build({
   restricted: false,
 });
 const notificationChannels = notificationChannelFactory.buildList(5);
-const createNotificationChannel = notificationChannelFactory.build({
+const editNotificationChannel = notificationChannelFactory.build({
   label: 'Test Channel Name',
   channel_type: 'email',
   details: {
@@ -42,7 +42,7 @@ const createNotificationChannel = notificationChannelFactory.build({
     },
   },
 });
-const { id, label } = createNotificationChannel;
+const { id, label } = editNotificationChannel;
 const checkErrorMessage = (field: string, message: string) => {
   cy.get(`p[role="alert"][data-qa-textfield-error-text="${field}"]`)
     .should('exist')
@@ -51,24 +51,23 @@ const checkErrorMessage = (field: string, message: string) => {
 
 describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
   /**
-   * Verify successful creation of a new email notification channel with success snackbar
-   * Verifies the payload sent to the API and the UI listing of the newly created channel.
-   * Verifies server error handling during channel creation.
+   * Verifies successful editing of an existing email notification channel with success snackbar.
+   * Verifies the payload sent to the API and the UI listing of the updated channel.
+   * Verifies server error handling during channel updates.
    */
   beforeEach(() => {
     mockAppendFeatureFlags(flagsFactory.build());
     mockGetAccount(mockAccount);
     mockGetProfile(mockProfile);
-    mockGetAlertChannels([
-      ...notificationChannels,
-      createNotificationChannel,
-    ]).as('getAlertNotificationChannels');
-    mockGetAlertChannelById(id, createNotificationChannel).as(
+    mockGetAlertChannels([...notificationChannels, editNotificationChannel]).as(
+      'getAlertNotificationChannels'
+    );
+    mockGetAlertChannelById(id, editNotificationChannel).as(
       'getAlertChannelById'
     );
-    mockGetUsers(mockusers).as('getAccountUsers');
+    mockGetUsers(mockUsers).as('getAccountUsers');
     mockUpdateAlertChannelById(id, {
-      ...createNotificationChannel,
+      ...editNotificationChannel,
       label: 'Updated Channel Name',
     }).as('updateAlertChannelById');
 
@@ -189,7 +188,7 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
     cy.url().should('include', '/alerts/notification-channels/edit/' + id);
   });
   it('should verify that edit of the usernames in email notification channel works correctly', () => {
-    const EditNotificationChannel = notificationChannelFactory.build({
+    const editNotificationChannel = notificationChannelFactory.build({
       label: 'Test Channel Name',
       channel_type: 'email',
       details: {
@@ -198,15 +197,15 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
         },
       },
     });
-    const { id, label } = EditNotificationChannel;
-    mockGetAlertChannels([...notificationChannels, EditNotificationChannel]).as(
+    const { id, label } = editNotificationChannel;
+    mockGetAlertChannels([...notificationChannels, editNotificationChannel]).as(
       'getAlertNotificationChannelsNew'
     );
 
-    mockUpdateAlertChannelById(id, EditNotificationChannel).as(
+    mockUpdateAlertChannelById(id, editNotificationChannel).as(
       'updateAlertChannelByUsers'
     );
-    mockGetAlertChannelById(id, EditNotificationChannel).as(
+    mockGetAlertChannelById(id, editNotificationChannel).as(
       'getAlertChannelByIdNew'
     );
 
@@ -438,7 +437,7 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
       'getAlertChannelById'
     );
     mockUpdateAlertChannelById(id, {
-      ...createNotificationChannel,
+      ...editNotificationChannel,
       label: 'Updated Channel Name',
     }).as('updateAlertChannelById');
 
@@ -496,7 +495,7 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
     ui.toast.assertMessage(UPDATE_CHANNEL_SUCCESS_MESSAGE);
   });
   it('should display field-specific error message when API returns field error during channel update', () => {
-    const EditNotificationChannel = notificationChannelFactory.build({
+    const editNotificationChannel = notificationChannelFactory.build({
       label: 'Test Channel Name',
       channel_type: 'email',
       details: {
@@ -505,12 +504,12 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
         },
       },
     });
-    const { id, label } = EditNotificationChannel;
-    mockGetAlertChannels([...notificationChannels, EditNotificationChannel]).as(
+    const { id, label } = editNotificationChannel;
+    mockGetAlertChannels([...notificationChannels, editNotificationChannel]).as(
       'getAlertNotificationChannelsNewList'
     );
 
-    mockGetAlertChannelById(id, EditNotificationChannel).as(
+    mockGetAlertChannelById(id, editNotificationChannel).as(
       'getAlertChannelById'
     );
     // Mock the update API to return a field-specific error

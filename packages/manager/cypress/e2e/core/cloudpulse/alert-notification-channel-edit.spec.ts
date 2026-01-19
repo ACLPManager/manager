@@ -24,7 +24,7 @@ import { UPDATE_CHANNEL_SUCCESS_MESSAGE } from 'src/features/CloudPulse/Alerts/c
 // Define mock data for the test.
 
 const mockAccount = accountFactory.build();
-const mockusers = [
+const mockUsers = [
   accountUserFactory.build({ username: 'user1' }),
   accountUserFactory.build({ username: 'user2' }),
   ...accountUserFactory.buildList(6),
@@ -33,7 +33,7 @@ const mockProfile = profileFactory.build({
   restricted: false,
 });
 const notificationChannels = notificationChannelFactory.buildList(5);
-const EditNotificationChannel = notificationChannelFactory.build({
+const editNotificationChannel = notificationChannelFactory.build({
   label: 'Test Channel Name',
   channel_type: 'email',
   details: {
@@ -42,27 +42,27 @@ const EditNotificationChannel = notificationChannelFactory.build({
     },
   },
 });
-const { id, label } = EditNotificationChannel;
+const { id, label } = editNotificationChannel;
 
 describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
   /**
-   * Verify successful creation of a new email notification channel with success snackbar
-   * Verifies the payload sent to the API and the UI listing of the newly created channel.
-   * Verifies server error handling during channel creation.
+   * Verifies successful editing of an existing email notification channel with a success snackbar.
+   * Verifies the update payload sent to the API and the UI listing after the channel is edited.
+   * Verifies server error handling during channel update failures.
    */
   beforeEach(() => {
     mockAppendFeatureFlags(flagsFactory.build());
     mockGetAccount(mockAccount);
     mockGetProfile(mockProfile);
-    mockGetAlertChannels([...notificationChannels, EditNotificationChannel]).as(
+    mockGetAlertChannels([...notificationChannels, editNotificationChannel]).as(
       'getAlertNotificationChannels'
     );
-    mockGetAlertChannelById(id, EditNotificationChannel).as(
+    mockGetAlertChannelById(id, editNotificationChannel).as(
       'getAlertChannelById'
     );
-    mockGetUsers(mockusers).as('getAccountUsers');
+    mockGetUsers(mockUsers).as('getAccountUsers');
     mockUpdateAlertChannelById(id, {
-      ...EditNotificationChannel,
+      ...editNotificationChannel,
       label: 'Updated Channel Name',
     }).as('updateAlertChannelById');
 
