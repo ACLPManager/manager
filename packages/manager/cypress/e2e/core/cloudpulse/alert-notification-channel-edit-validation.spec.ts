@@ -183,7 +183,7 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
       .should('be.enabled')
       .click();
 
-    ui.toast.assertMessage('Internal server Error');
+    ui.toast.assertMessage('Internal server error');
 
     cy.url().should('include', '/alerts/notification-channels/edit/' + id);
   });
