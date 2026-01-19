@@ -156,7 +156,7 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
   });
   it('should display server error when editing a notification channel fails', () => {
     // Simulate server error on update
-    mockUpdateAlertChannelByIdError(id, 'Internal server Error').as(
+    mockUpdateAlertChannelByIdError(id, 'Internal server error').as(
       'updateAlertChannelByIdError'
     );
     cy.visitWithLogin('/alerts/notification-channels');
@@ -311,7 +311,7 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
     checkErrorMessage('Name', 'Name must be 100 characters or less.');
   });
   it('should verify the system alerts does not have edit action menu', () => {
-    const EditNotificationSystemChannel = notificationChannelFactory.build({
+    const editNotificationSystemChannel = notificationChannelFactory.build({
       label: 'Test System Channel',
       channel_type: 'email',
       details: {
@@ -321,10 +321,10 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
       },
       type: 'system',
     });
-    const { label } = EditNotificationSystemChannel;
+    const { label } = editNotificationSystemChannel;
     mockGetAlertChannels([
       ...notificationChannels,
-      EditNotificationSystemChannel,
+      editNotificationSystemChannel,
     ]).as('getAlertNotificationChannelsNew');
 
     cy.visitWithLogin('/alerts/notification-channels');
@@ -358,7 +358,7 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
     checkErrorMessage('Recipients', 'This field is required.');
   });
   it('should verify the prefill validation esp when recipients selected is at the few scrolls', () => {
-    const EditNotificationChannel = notificationChannelFactory.build({
+    const editNotificationChannel = notificationChannelFactory.build({
       label: 'Test Channel Name',
       channel_type: 'email',
       details: {
@@ -367,14 +367,14 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
         },
       },
     });
-    const { id, label } = EditNotificationChannel;
-    const mockusers = [...accountUserFactory.buildList(100)];
-    mockGetUsers(mockusers).as('get100AccountUsers');
-    mockGetAlertChannels([...notificationChannels, EditNotificationChannel]).as(
+    const { id, label } = editNotificationChannel;
+    const mockUsers = [...accountUserFactory.buildList(100)];
+    mockGetUsers(mockUsers).as('get100AccountUsers');
+    mockGetAlertChannels([...notificationChannels, editNotificationChannel]).as(
       'getAlertNotificationChannelsNew'
     );
 
-    mockGetAlertChannelById(id, EditNotificationChannel).as(
+    mockGetAlertChannelById(id, editNotificationChannel).as(
       'getAlertChannelByIdNew'
     );
 
@@ -414,7 +414,7 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
       (_, i) => `user-${i + 1}`
     );
 
-    const EditNotificationChannel = notificationChannelFactory.build({
+    const editNotificationChannel = notificationChannelFactory.build({
       label: 'Test Channel Max Recipients Edit',
       channel_type: 'email',
       details: {
@@ -423,17 +423,17 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
         },
       },
     });
-    const { id, label } = EditNotificationChannel;
+    const { id, label } = editNotificationChannel;
 
     const mockUsers = Array.from({ length: 15 }, (_, i) =>
       accountUserFactory.build({ username: `user-${i + 1}` })
     );
 
     mockGetUsers(mockUsers).as('getAccountUsers');
-    mockGetAlertChannels([...notificationChannels, EditNotificationChannel]).as(
+    mockGetAlertChannels([...notificationChannels, editNotificationChannel]).as(
       'getAlertNotificationChannels'
     );
-    mockGetAlertChannelById(id, EditNotificationChannel).as(
+    mockGetAlertChannelById(id, editNotificationChannel).as(
       'getAlertChannelById'
     );
     mockUpdateAlertChannelById(id, {
