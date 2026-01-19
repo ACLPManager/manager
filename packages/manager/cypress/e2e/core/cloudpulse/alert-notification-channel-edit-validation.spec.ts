@@ -458,6 +458,7 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
     // Verify we start with 10 recipients
     cy.get('[data-tag-index]').should('have.length', 10);
 
+    // Verify that user-11 is disabled
     cy.findByRole('option', { name: 'user-11' })
       .should('exist')
       .should('have.attr', 'aria-disabled', 'true');
@@ -473,13 +474,13 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
     cy.get('[data-tag-index]').should('have.length', 9);
 
     // Now we should be able to add user-11
-    // cy.findByLabelText('Recipients').click();
     ui.autocompletePopper.findByTitle('user-11').click();
 
     // Verify we're back to 10 recipients
     cy.get('[data-tag-index]').should('have.length', 10);
 
-    // Verify user-12 is now disabled again
+    // Wait for the dropdown options to re-render and verify user-12 is now disabled again
+
     cy.findByRole('option', { name: 'user-12' })
       .should('exist')
       .should('have.attr', 'aria-disabled', 'true');
@@ -559,5 +560,50 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
     cy.findByLabelText('Name')
       .should('be.enabled')
       .and('have.value', 'Duplicate Channel Name');
+  });
+  it('should verify the proper error message is displayed when recipients call fails with server error', () => {
+    // Mock Get Users API to return 500 error
+    cy.intercept('GET', '*/account/users?*', {
+      statusCode: 500,
+      body: {},
+    }).as('getAccountUsersError');
+    cy.visitWithLogin('/alerts/notification-channels');
+    // Wait for initial data load
+    cy.wait('@getAlertNotificationChannels');
+    // Select the Edit notification channel to edit
+    ui.actionMenu
+      .findByTitle('Action menu for Notification Channel ' + label)
+      .click();
+    ui.actionMenuItem.findByTitle('Edit').click();
+
+    // Wait for Get Users API call
+    cy.wait('@getAccountUsersError');
+
+    // Verify error message is displayed in Recipients field
+    cy.findByLabelText('Recipients').click();
+
+    checkErrorMessage('Recipients', 'Failed to fetch the users.');
+
+    // Close the Recipients dropdown
+    cy.get('body').click(0, 0);
+
+    ui.buttonGroup
+      .findButtonByTitle('Save')
+      .should('be.visible')
+      .should('be.enabled')
+      .click();
+
+    checkErrorMessage('Recipients', 'This field is required.');
+  });
+  it('should verify for wrong id in direct edit url', () => {
+    const wrongId = 9999;
+    cy.visitWithLogin('/alerts/notification-channels/edit/' + wrongId);
+    // Verify for error msg
+    cy.get('h3[data-qa-error-msg="true"]')
+      .should('be.visible')
+      .and(
+        'have.text',
+        'An error occurred while loading the notification channel. Please try again later.'
+      );
   });
 });
