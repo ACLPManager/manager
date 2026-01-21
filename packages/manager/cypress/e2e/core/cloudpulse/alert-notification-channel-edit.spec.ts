@@ -162,7 +162,7 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
   });
   it('should display server error when editing a notification channel fails', () => {
     // Simulate server error on update
-    mockUpdateAlertChannelByIdError(id, 'Internal server Error').as(
+    mockUpdateAlertChannelByIdError(id, 'Internal server error').as(
       'updateAlertChannelByIdError'
     );
     cy.visitWithLogin('/alerts/notification-channels');
