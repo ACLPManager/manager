@@ -11,7 +11,7 @@ import { AlertDetailRow } from '../../AlertsDetail/AlertDetailRow';
 import type { NotificationChannel } from '@linode/api-v4';
 
 interface NotificationChannelDetailOverviewProps {
-  /**
+  /*
    * The notification channel object containing all the details for which the overview needs to be displayed.
    */
   channelDetails: NotificationChannel;
@@ -32,12 +32,12 @@ export const NotificationChannelDetailOverview = React.memo(
 
     return (
       <>
-        <Typography marginBottom={3} variant="h2">
+        <Typography marginBottom={2} variant="h2">
           Overview
         </Typography>
         <Grid
           container
-          spacing={1}
+          spacing={2}
           sx={{
             alignItems: 'center',
           }}

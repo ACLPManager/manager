@@ -383,8 +383,57 @@ const databases = [
 
   http.get('*/databases/postgresql/instances/:id/connection-pools', () => {
     const connectionPools = databaseConnectionPoolFactory.buildList(5);
+    // For mocking error response
+    // return HttpResponse.json({ errors: [{ reason: 'Unable to retrieve connection pools' }] }, { status: 400 });
     return HttpResponse.json(makeResourcePage(connectionPools));
   }),
+
+  http.post(
+    '*/databases/postgresql/instances/:id/connection-pools',
+    async ({ request }) => {
+      const body = await request.json();
+      const payload: any = body;
+
+      const connectionPool = databaseConnectionPoolFactory.build({
+        database: payload.database,
+        label: payload.label,
+        mode: payload.mode,
+        size: payload.size,
+        username: payload.username,
+      });
+      // For mocking error response
+      // return HttpResponse.json(
+      //   {
+      //     errors: [
+      //       { field: 'label', reason: 'sample error text' },
+      //       { field: 'database', reason: 'sample error text' },
+      //       { field: 'mode', reason: 'sample error text' },
+      //       { field: 'size', reason: 'sample error text' },
+      //       { field: 'username', reason: 'sample error text' },
+      //     ],
+      //   },
+      //   { status: 400 }
+      // );
+      return HttpResponse.json(connectionPool);
+    }
+  ),
+
+  http.put(
+    '*/databases/postgresql/instances/:id/connection-pools/:label',
+    async ({ request }) => {
+      const body = await request.json();
+      const payload: any = body;
+
+      const connectionPool = databaseConnectionPoolFactory.build({
+        database: payload.database,
+        label: payload.label,
+        mode: payload.mode,
+        size: payload.size,
+        username: payload.username,
+      });
+      return HttpResponse.json(connectionPool);
+    }
+  ),
 
   http.get('*/databases/:engine/instances/:id', ({ params }) => {
     const database = makeMockDatabase(params);
@@ -668,16 +717,16 @@ const marketplace = [
     return HttpResponse.json(marketplaceProductDetail);
   }),
   http.get('*/v4beta/marketplace/categories', () => {
-    const marketplaceCategory = marketplaceCategoryFactory.buildList(5);
+    const marketplaceCategory = marketplaceCategoryFactory.buildList(10);
     return HttpResponse.json(makeResourcePage([...marketplaceCategory]));
   }),
   http.get('*/v4beta/marketplace/types', () => {
-    const marketplaceType = marketplaceTypeFactory.buildList(5);
+    const marketplaceType = marketplaceTypeFactory.buildList(100);
     return HttpResponse.json(makeResourcePage([...marketplaceType]));
   }),
   http.get('*/v4beta/marketplace/partners', () => {
-    const marketplaceType = marketplacePartnersFactory.buildList(5);
-    return HttpResponse.json(makeResourcePage([...marketplaceType]));
+    const marketplacePartner = marketplacePartnersFactory.buildList(100);
+    return HttpResponse.json(makeResourcePage([...marketplacePartner]));
   }),
   http.post('*/v4beta/marketplace/referral', async () => {
     await sleep(2000);
@@ -3682,7 +3731,7 @@ export const handlers = [
     notificationChannels.push(
       notificationChannelFactory.build({
         id: 5,
-        label: 'No-alerts-channel',
+        label: 'Email test channel',
         updated: '2023-11-05T04:00:00',
         updated_by: 'user3',
         created_by: 'admin',
@@ -3710,7 +3759,16 @@ export const handlers = [
     );
     return HttpResponse.json(makeResourcePage(notificationChannels));
   }),
+  http.post('*/monitor/alert-channels', () => {
+    return HttpResponse.json(notificationChannelFactory.build());
+  }),
+  http.put('*/monitor/alert-channels/:id', () => {
+    return HttpResponse.json(notificationChannelFactory.build());
+  }),
   http.get('*/monitor/alert-channels/:id', ({ params }) => {
+    if (params.id === undefined) {
+      return HttpResponse.json({}, { status: 404 });
+    }
     if (params.id === '5') {
       return HttpResponse.json(
         notificationChannelFactory.build({
@@ -3728,13 +3786,13 @@ export const handlers = [
             email: {
               recipient_type: 'user',
               usernames: [
-                'user1',
+                'reallyreallylongusername1',
                 'user2',
-                'user3',
-                'user4',
+                'longusernameuser3',
+                'longusernameuser4',
                 'user5',
-                'user6',
-                'user7',
+                'longusernameuser6',
+                'longusernameuser7',
                 'user8',
                 'user9',
                 'user10',
@@ -3767,7 +3825,19 @@ export const handlers = [
         notificationChannelFactory.build({
           id: Number(params.id),
           details: {
-            email: { recipient_type: 'user', usernames: ['user1', 'user2'] },
+            email: {
+              recipient_type: 'user',
+              usernames: [
+                'user1',
+                'user2',
+                'user3',
+                'user4',
+                'user5',
+                'user6',
+                'user7',
+                'user8',
+              ],
+            },
           },
         })
       );
@@ -3781,12 +3851,29 @@ export const handlers = [
     if (params.id === '5') {
       return HttpResponse.json(makeResourcePage([]));
     }
+    const alerts = notificationChannelAlertsFactory.buildList(84);
+    const dbaasalerts = notificationChannelAlertsFactory.buildList(2, {
+      service_type: 'dbaas',
+    });
+    const volumeAlerts = notificationChannelAlertsFactory.buildList(3, {
+      service_type: 'blockstorage',
+    });
+    alerts.push(...volumeAlerts);
+    alerts.push(...dbaasalerts);
+    return HttpResponse.json(makeResourcePage(alerts));
+  }),
+  http.get('*/monitor/alert-channels/:id/alerts', ({ params }) => {
+    if (params.id === 'undefined') {
+      return HttpResponse.json({}, { status: 404 });
+    }
+    if (params.id === '5') {
+      return HttpResponse.json(makeResourcePage([]));
+    }
     const alerts = notificationChannelAlertsFactory.buildList(3);
     const dbaasalerts = notificationChannelAlertsFactory.buildList(2, {
       service_type: 'dbaas',
     });
-    alerts.push(...dbaasalerts);
-    return HttpResponse.json(makeResourcePage(alerts));
+    return HttpResponse.json(makeResourcePage([...alerts, ...dbaasalerts]));
   }),
   http.get('*/monitor/services', () => {
     const response: ServiceTypesList = {
@@ -3825,7 +3912,7 @@ export const handlers = [
           }),
         }),
         serviceTypesFactory.build({
-          label: 'Volumes',
+          label: 'Block Storage',
           service_type: 'blockstorage',
           regions: 'us-iad,us-east',
           alert: serviceAlertFactory.build({
@@ -3855,7 +3942,7 @@ export const handlers = [
       firewall: 'Firewalls',
       objectstorage: 'Object Storage',
       blockstorage: 'Volumes',
-      lke: 'LKE',
+      lke: 'LKE Enterprise',
     };
     const serviceTypeScopeMap: Record<
       CloudPulseServiceType,
@@ -4645,32 +4732,5 @@ export const handlers = [
     return HttpResponse.json(
       makeResourcePage(maintenancePolicyFactory.buildList(2))
     );
-  }),
-  http.post('*/v4beta/monitor/alert-channels', () => {
-    return HttpResponse.json(notificationChannelFactory.build());
-  }),
-  http.put('*/monitor/alert-channels/:id', () => {
-    return HttpResponse.json(notificationChannelFactory.build());
-  }),
-  http.get('*/monitor/alert-channels/:id', () => {
-    return HttpResponse.json(
-      notificationChannelFactory.build({
-        id: 5,
-        label: 'Email test channel',
-        updated: '2023-11-05T04:00:00',
-        updated_by: 'user3',
-        created_by: 'admin',
-        type: 'user',
-        channel_type: 'email',
-        details: {
-          email: {
-            usernames: ['ChildUser', 'NonAdminUser'],
-          },
-        },
-      })
-    );
-  }),
-  http.delete('*/v4beta/monitor/alert-channels/:channelId', () => {
-    return HttpResponse.json({});
   }),
 ];
