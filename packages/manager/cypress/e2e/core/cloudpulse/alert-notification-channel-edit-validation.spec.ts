@@ -494,7 +494,7 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
     // Verify success toast
     ui.toast.assertMessage(UPDATE_CHANNEL_SUCCESS_MESSAGE);
   });
-  it('should display field-specific error message when API returns field error during channel update', () => {
+  it('should display field-specific error message when API returns field error during channel update - Name', () => {
     const editNotificationChannel = notificationChannelFactory.build({
       label: 'Test Channel Name',
       channel_type: 'email',
@@ -515,7 +515,7 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
     // Mock the update API to return a field-specific error
     mockUpdateAlertChannelByIdError(
       id,
-      { field: 'name', reason: 'Duplicate labels not allowed' },
+      { field: 'label', reason: 'Duplicate labels not allowed' },
       400
     ).as('updateAlertChannelServerFieldError');
 
@@ -560,6 +560,67 @@ describe('CloudPulse Alerting - Notification Channel Edit Validation', () => {
       .should('be.enabled')
       .and('have.value', 'Duplicate Channel Name');
   });
+  it('should display field-specific error message when API returns field error during channel update - Recipients', () => {
+    const editNotificationChannel = notificationChannelFactory.build({
+      label: 'Test Channel Name',
+      channel_type: 'email',
+      details: {
+        email: {
+          usernames: ['user1', 'user2'],
+        },
+      },
+    });
+    const { id, label } = editNotificationChannel;
+    mockGetAlertChannels([...notificationChannels, editNotificationChannel]).as(
+      'getAlertNotificationChannelsNewList'
+    );
+
+    mockGetAlertChannelById(id, editNotificationChannel).as(
+      'getAlertChannelById'
+    );
+    // Mock the update API to return a field-specific error
+    mockUpdateAlertChannelByIdError(
+      id,
+      { field: 'details.email.usernames', reason: 'Invalid recipients' },
+      400
+    ).as('updateAlertChannelServerFieldError');
+
+    cy.visitWithLogin('/alerts/notification-channels');
+    cy.wait('@getAlertNotificationChannelsNewList');
+
+    // Navigate to edit page
+    ui.actionMenu
+      .findByTitle('Action menu for Notification Channel ' + label)
+      .click();
+    ui.actionMenuItem.findByTitle('Edit').click();
+
+    cy.wait('@getAlertChannelById');
+
+    // Verify we're on the edit page
+    cy.url().should('include', '/alerts/notification-channels/edit/' + id);
+
+    // Modify the recipients to trigger error
+    cy.findByLabelText('Recipients').click();
+
+    // Click Save button
+    ui.buttonGroup
+      .findButtonByTitle('Save')
+      .should('be.visible')
+      .should('be.enabled')
+      .click();
+
+    // Wait for the intercepted API call
+    cy.wait('@updateAlertChannelServerFieldError')
+      .its('response.statusCode')
+      .should('eq', 400);
+
+    // Verify field-specific error message appears
+    checkErrorMessage('Recipients', 'Invalid recipients');
+
+    // Verify user remains on edit page (no redirect)
+    cy.url().should('include', '/alerts/notification-channels/edit/' + id);
+  });
+
   it('should verify the proper error message is displayed when recipients call fails with server error', () => {
     // Mock Get Users API to return 500 error
     cy.intercept('GET', '*/account/users?*', {
