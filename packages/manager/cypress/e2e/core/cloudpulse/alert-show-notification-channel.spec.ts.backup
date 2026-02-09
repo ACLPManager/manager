@@ -1,0 +1,731 @@
+/**
+ * @file Integration Tests for the CloudPulse Alerts Notification Channel Show Detail Page.
+ *
+ * This file contains Cypress tests that validate the display and content of the Alerts Notification channel Show Detail Page in the CloudPulse application.
+ * It ensures that all alert details, criteria, and entity information are displayed correctly.
+ */
+import { profileFactory } from '@linode/utilities';
+import { cloudPulseServiceMap } from 'support/constants/cloudpulse';
+import { mockGetAccount } from 'support/intercepts/account';
+import {
+  mockGetAlertChannelById,
+  mockGetAlertChannelByIdError,
+  mockGetAlertChannels,
+  mockGetAlertsByChannelId,
+  mockGetAlertsByChannelIdError,
+} from 'support/intercepts/cloudpulse';
+import { mockAppendFeatureFlags } from 'support/intercepts/feature-flags';
+import { mockGetProfile } from 'support/intercepts/profile';
+import { ui } from 'support/ui';
+
+import { notificationChannelAlertsFactory } from 'src/factories';
+import {
+  accountFactory,
+  flagsFactory,
+  notificationChannelFactory,
+} from 'src/factories';
+import { formatDate } from 'src/utilities/formatDate';
+
+// Define mock data for the test
+const mockAccount = accountFactory.build();
+const mockProfile = profileFactory.build({
+  restricted: false,
+  timezone: 'gmt',
+});
+
+/**
+ * Helper function to navigate to a notification channel's show details page
+ */
+const navigateToChannelDetails = (channelLabel: string) => {
+  ui.actionMenu
+    .findByTitle(`Action menu for Notification Channel ${channelLabel}`)
+    .click();
+  ui.actionMenuItem.findByTitle('Show Details').click();
+};
+
+describe('CloudPulse Alerting - Notification Channel Show Details Validation', () => {
+  beforeEach(() => {
+    mockAppendFeatureFlags(flagsFactory.build());
+    mockGetAccount(mockAccount);
+    mockGetProfile(mockProfile);
+  });
+
+  /**
+   * Test 1: Verify Navigation to Alert Channel and Show Details
+   */
+  it('should navigate to notification channel show details page and display channel information', () => {
+    const notificationChannel = notificationChannelFactory.build({
+      label: 'Test Notification Channel',
+      channel_type: 'email',
+      created_by: 'user1',
+      updated_by: 'user2',
+      created: '2026-01-27T06:18:00Z',
+      updated: new Date().toISOString(),
+      details: {
+        email: {
+          recipient_type: 'user',
+          usernames: ['admin-user', 'john-doe', 'jane-smith'],
+        },
+      },
+    });
+
+    const mockAlerts = notificationChannelAlertsFactory.buildList(5, {
+      service_type: 'linode',
+    });
+
+    mockGetAlertChannels([notificationChannel]).as('getChannels');
+    mockGetAlertChannelById(notificationChannel.id, notificationChannel).as(
+      'getChannelById'
+    );
+    mockGetAlertsByChannelId(notificationChannel.id, mockAlerts).as(
+      'getAlertsByChannelId'
+    );
+
+    cy.visitWithLogin('/alerts/notification-channels');
+    cy.wait('@getChannels');
+
+    navigateToChannelDetails(notificationChannel.label);
+
+    cy.wait('@getChannelById');
+    cy.wait('@getAlertsByChannelId');
+
+    // Verify navigation
+    cy.url().should(
+      'include',
+      `/alerts/notification-channels/detail/${notificationChannel.id}`
+    );
+
+    // Validate Overview Section
+    cy.get('[data-qa-section="Overview"]').within(() => {
+      cy.findByText('Name:').should('be.visible');
+      cy.findByText(notificationChannel.label).should('be.visible');
+
+      cy.findByText('Channel Type:').should('be.visible');
+      cy.findByText('Email').should('be.visible');
+
+      cy.findByText('Created by:').should('be.visible');
+      cy.findByText(notificationChannel.created_by).should('be.visible');
+
+      cy.findByText('Creation Time:').should('be.visible');
+      cy.findByText(
+        formatDate(notificationChannel.created, {
+          format: 'MMM dd, yyyy, h:mm a',
+          timezone: 'GMT',
+        })
+      ).should('be.visible');
+
+      cy.findByText('Last Modified:').should('be.visible');
+      cy.findByText('Last Modified by:').should('be.visible');
+      cy.findByText(notificationChannel.updated_by).should('be.visible');
+    });
+
+    // Validate Details Section
+    cy.get('[data-qa-section="Details"]').within(() => {
+      cy.findByText('Recipient Type:').should('be.visible');
+      cy.get('[data-qa-chip="user"]').should('be.visible');
+
+      // Validate recipient usernames
+      ['admin-user', 'john-doe', 'jane-smith'].forEach((username) => {
+        cy.get(`[data-qa-chip="${username}"]`).should('be.visible');
+      });
+    });
+
+    // Validate Associated Alerts Section
+    cy.get('[data-qa-section="Associated Alerts"]').within(() => {
+      cy.findByPlaceholderText('Search for Alerts').should('be.visible');
+      cy.get('[data-qa="associated-alerts-table"]').should('be.visible');
+    });
+  });
+
+  /**
+   * Test 2: Verify Show Details When No Alerts Are Returned
+   */
+  it('should display channel details correctly when no associated alerts exist', () => {
+    const notificationChannel = notificationChannelFactory.build({
+      label: 'Channel Without Alerts',
+      channel_type: 'email',
+      details: {
+        email: {
+          recipient_type: 'user',
+          usernames: ['test-user'],
+        },
+      },
+    });
+
+    mockGetAlertChannels([notificationChannel]).as('getChannels');
+    mockGetAlertChannelById(notificationChannel.id, notificationChannel).as(
+      'getChannelById'
+    );
+    mockGetAlertsByChannelId(notificationChannel.id, []).as(
+      'getEmptyAlertsList'
+    );
+
+    cy.visitWithLogin('/alerts/notification-channels');
+    cy.wait('@getChannels');
+
+    navigateToChannelDetails(notificationChannel.label);
+
+    cy.wait('@getChannelById');
+    cy.wait('@getEmptyAlertsList');
+
+    // Verify channel details are still displayed
+    cy.get('[data-qa-section="Overview"]').within(() => {
+      cy.findByText(notificationChannel.label).should('be.visible');
+    });
+
+    // Verify empty state or table with no rows
+    cy.get('[data-qa-section="Associated Alerts"]').within(() => {
+      cy.get('[data-qa="associated-alerts-table"]')
+        .find('tbody tr')
+        .should('have.length', 0);
+    });
+  });
+    // Wait for the alert notification channels to load
+    cy.wait('@getAlertNotificationChannels');
+    // Select the first notification channel to edit
+    const { id, label } = notificationChannels[1];
+    // Select the first notification channel to edit
+    ui.actionMenu
+      .findByTitle('Action menu for Notification Channel ' + label)
+      .click();
+    ui.actionMenuItem.findByTitle('Show Details').click();
+    cy.wait('@getAlertNotificationChannelById');
+    cy.wait('@getAlertsByChannelId');
+    // Verify that the URL is correct
+    cy.url().should('include', `/alerts/notification-channels/detail/${id}`);
+  });
+  it('should verify when get channel alerts returns 400 and 500 errors', () => {
+    // Intercept the get alerts by channel id request to return a 500 error
+    mockGetAlertsByChannelIdError(notificationChannels[1].id).as(
+      'getAlertsByChannelIdError500'
+    );
+    // Select the first notification channel to edit
+    const { id, label } = notificationChannels[1];
+    // Select the first notification channel to edit
+    ui.actionMenu
+      .findByTitle('Action menu for Notification Channel ' + label)
+      .click();
+    ui.actionMenuItem.findByTitle('Show Details').click();
+    cy.wait('@getAlertNotificationChannelById');
+    cy.wait('@getAlertsByChannelIdError500');
+    // Verify that the URL is correct
+    cy.url().should('include', `/alerts/notification-channels/detail/${id}`);
+  });
+  it('should verify when get alertchannel returns 400 error', () => {
+    // Intercept the get alert channel by id request to return a 500 error
+    mockGetAlertChannelByIdError(notificationChannels[1].id).as(
+      'getAlertNotificationChannelByIdError500'
+    );
+    cy.visitWithLogin('/alerts/notification-channels');
+    // Select the first notification channel to edit
+    const { id, label } = notificationChannels[1];
+    // Select the first notification channel to edit
+    ui.actionMenu
+      .findByTitle('Action menu for Notification Channel ' + label)
+      .click();
+    ui.actionMenuItem.findByTitle('Show Details').click();
+    cy.wait('@getAlertNotificationChannelByIdError500');
+    // Verify that the URL is correct
+    cy.url().should('include', `/alerts/notification-channels/detail/${id}`);
+  });
+  it('should verify when no response returned by get alertchannel request', () => {
+    // Intercept the get alert channel by id request to return a 400 error
+    mockGetAlertsByChannelId(notificationChannels[1].id, []).as(
+      'getAlertNotificationChannelByIdNoResponse'
+    );
+    cy.visitWithLogin('/alerts/notification-channels');
+    // Select the first notification channel to edit
+    const { id, label } = notificationChannels[1];
+    // Select the first notification channel to edit
+    ui.actionMenu
+      .findByTitle('Action menu for Notification Channel ' + label)
+      .click();
+    ui.actionMenuItem.findByTitle('Show Details').click();
+    cy.wait('@getAlertNotificationChannelByIdNoResponse');
+    // Verify that the URL is correct
+    cy.url().should('include', `/alerts/notification-channels/detail/${id}`);
+  });
+  it('should verify notificationChannels with no user recipients_type and no recipients', () => {
+    const notificationChannelNoRecipients =
+      notificationChannelFactory.buildList(10, {
+        details: { email: { recipient_type: 'user', usernames: [''] } },
+      });
+    mockGetAlertChannels(notificationChannelNoRecipients).as(
+      'getAlertNotificationChannels'
+    );
+    const { id, label } = notificationChannelNoRecipients[1];
+    mockGetAlertChannelById(id, notificationChannelNoRecipients[1]).as(
+      'getAlertNotificationChannelNoRecipients'
+    );
+    mockGetAlertsByChannelId(id, []).as('getAlertsByChannelIdNoRecipients');
+    cy.visitWithLogin('/alerts/notification-channels');
+    cy.wait('@getAlertNotificationChannels');
+    // Select the first notification channel to edit
+    ui.actionMenu
+      .findByTitle('Action menu for Notification Channel ' + label)
+      .click();
+    ui.actionMenuItem.findByTitle('Show Details').click();
+    cy.wait('@getAlertNotificationChannelNoRecipients');
+    // Verify that the URL is correct
+    cy.url().should('include', `/alerts/notification-channels/detail/${id}`);
+  });
+  it('should verify notificationChannels with long usernames list wrapping behavior', () => {
+    const notificationChannellonglabel = notificationChannelFactory.buildList(
+      1,
+      {
+        label: 'longnamerepeat123456'.repeat(5), // Exactly 100 characters
+        created_by: 'longnamerepeat123456'.repeat(5),
+        updated_by: 'longnamerepeat123456'.repeat(5),
+        channel_type: 'email',
+        details: {
+          email: {
+            recipient_type: 'user',
+            usernames: ['abcdefghijklmnopqrstuvwxyz'],
+          },
+        },
+      }
+    );
+    mockGetAlertChannels(notificationChannellonglabel).as(
+      'getAlertNotificationChannels'
+    );
+    mockGetAlertChannelById(
+      notificationChannellonglabel[0].id,
+      notificationChannellonglabel[0]
+    ).as('getAlertNotificationChannellonglabelById');
+    const { id, label } = notificationChannellonglabel[0];
+    const mockAlerts = [
+      ...notificationChannelAlertsFactory.buildList(2, {
+        service_type: 'linode',
+      }),
+      ...notificationChannelAlertsFactory.buildList(2, {
+        service_type: 'dbaas',
+      }),
+    ];
+    mockGetAlertsByChannelId(id, mockAlerts).as('getAlertListbychannelId');
+    cy.visitWithLogin('/alerts/notification-channels');
+    cy.wait('@getAlertNotificationChannels');
+    // Select the first notification channel to edit
+    ui.actionMenu
+      .findByTitle('Action menu for Notification Channel ' + label)
+      .click();
+    ui.actionMenuItem.findByTitle('Show Details').click();
+    cy.wait('@getAlertNotificationChannellonglabelById');
+    cy.wait('@getAlertListbychannelId');
+    // Verify that the URL is correct
+    cy.url().should('include', `/alerts/notification-channels/detail/${id}`);
+  });
+  it('should verify for large number of alerts associated with a notification channel', () => {
+    const largeAlertList = notificationChannelAlertsFactory.buildList(500, {
+      service_type: 'nodebalancer',
+      // label: '',
+      label: 'longnamerepeat123456'.repeat(5),
+    });
+
+    mockGetAlertsByChannelId(notificationChannels[2].id, largeAlertList).as(
+      'getLargeAlertsByChannelId'
+    );
+    mockGetAlertChannelById(
+      notificationChannels[2].id,
+      notificationChannels[2]
+    ).as('getAlertNotificationChannelById');
+    const { id, label } = notificationChannels[2];
+    // Select the first notification channel to edit
+    ui.actionMenu
+      .findByTitle('Action menu for Notification Channel ' + label)
+      .click();
+    ui.actionMenuItem.findByTitle('Show Details').click();
+    cy.wait('@getAlertNotificationChannelById');
+    cy.wait('@getLargeAlertsByChannelId');
+    // Verify that the URL is correct
+    cy.url().should('include', `/alerts/notification-channels/detail/${id}`);
+  });
+  it('should verify notificationChannels with no label, no created_by and updated_by fields', () => {
+    const notificationChannelNoLabel = notificationChannelFactory.buildList(1, {
+      label: '1',
+      created_by: '',
+      updated_by: '',
+      channel_type: 'email',
+    });
+    mockGetAlertChannels(notificationChannelNoLabel).as(
+      'getAlertNotificationChannels'
+    );
+    const { id, label } = notificationChannelNoLabel[0];
+    mockGetAlertChannelById(id, notificationChannelNoLabel[0]).as(
+      'getAlertNotificationChannelNoLabel'
+    );
+    mockGetAlertsByChannelId(id, []).as('getAlertsByChannelIdNoLabel');
+    cy.visitWithLogin('/alerts/notification-channels');
+    cy.wait('@getAlertNotificationChannels');
+    // Select the first notification channel to edit
+    ui.actionMenu
+      .findByTitle('Action menu for Notification Channel ' + label)
+      .click();
+    ui.actionMenuItem.findByTitle('Show Details').click();
+    cy.wait('@getAlertNotificationChannelNoLabel');
+    // Verify that the URL is correct
+    cy.url().should('include', `/alerts/notification-channels/detail/${id}`);
+  });
+  it.only('should correctly display the details of the notification channels along with associated alerts', () => {
+    const notificationChannelDetails = notificationChannelFactory.buildList(1, {
+      label: 'Notification channel 1',
+      channel_type: 'email',
+      type: 'user',
+      details: {
+        email: {
+          recipient_type: 'user',
+          usernames: ['admin-user', 'john-doe', 'jane-smith'],
+        },
+      },
+      created_by: 'user1',
+      updated_by: 'user2',
+      created: '2026-01-27T06:18:00Z',
+      // created: '2026-01-26T12:00:00Z',
+      updated: new Date().toISOString(),
+    });
+    const {
+      label,
+      id,
+      type,
+      channel_type,
+      details,
+      created_by,
+      created,
+      updated,
+      updated_by,
+    } = notificationChannelDetails[0];
+
+    mockGetAlertChannels(notificationChannelDetails).as(
+      'getAlertNotificationChannels'
+    );
+    mockGetAlertChannelById(id, notificationChannelDetails[0]).as(
+      'getAlertNotificationChannelbyId'
+    );
+    const mockAlerts = [
+      ...notificationChannelAlertsFactory.buildList(5, {
+        service_type: 'linode',
+      }),
+      ...notificationChannelAlertsFactory.buildList(5, {
+        service_type: 'dbaas',
+      }),
+      ...notificationChannelAlertsFactory.buildList(5, {
+        service_type: 'lke',
+      }),
+      ...notificationChannelAlertsFactory.buildList(5, {
+        service_type: 'nodebalancer',
+      }),
+      ...notificationChannelAlertsFactory.buildList(5, {
+        service_type: 'firewall',
+      }),
+      ...notificationChannelAlertsFactory.buildList(5, {
+        service_type: 'objectstorage',
+      }),
+      ...notificationChannelAlertsFactory.buildList(5, {
+        service_type: 'blockstorage',
+      }),
+    ];
+    mockGetAlertsByChannelId(id, mockAlerts).as('getAlertsForChannelId');
+    cy.visitWithLogin('/alerts/notification-channels');
+    // Wait for the alert notification channels to load
+    cy.wait('@getAlertNotificationChannels');
+    // Select the first notification channel to edit
+    ui.actionMenu
+      .findByTitle('Action menu for Notification Channel ' + label)
+      .click();
+    ui.actionMenuItem.findByTitle('Show Details').click();
+    cy.wait('@getAlertNotificationChannelbyId');
+
+    // Verify the initial state of the page size
+    ui.pagination.findPageSizeSelect().click();
+
+    // Verify the page size options are visible
+    cy.get('[data-qa-pagination-page-size-option="25"]')
+      .should('exist')
+      .click();
+
+    const pages = [1, 2];
+
+    // Confirm that pagination controls list exactly 2 pages.
+    ui.pagination
+      .findControls()
+      .should('be.visible')
+      .within(() => {
+        pages.forEach((page: number) =>
+          cy.findByText(`${page}`).should('be.visible')
+        );
+        cy.findByText('3').should('not.exist');
+      });
+
+    // Validate pagination from length of mockAlerts (26 total: page 1 has 25, page 2 has 1)
+    pages.forEach((page: number) => {
+      const pageSize = 25;
+      const startIndex = pageSize * (page - 1);
+      const endIndex = Math.min(pageSize * page, mockAlerts.length);
+      const alertSubset = mockAlerts.slice(startIndex, endIndex);
+      const expectedRowCount = alertSubset.length + 1; // +1 for header row
+
+      ui.pagination.findControls().within(() => {
+        cy.findByText(`${page}`).should('be.visible').click();
+      });
+
+      // Verify the correct number of rows (alerts + header)
+      cy.get('[data-qa="associated-alerts-table"]')
+        .find('tr')
+        .should('have.length', expectedRowCount);
+
+      // Verify each alert in the subset is visible
+      alertSubset.forEach((alert) => {
+        cy.findByText(alert.label).should('be.visible');
+      });
+    });
+
+    // Change pagination page size to 100
+    ui.pagination.findPageSizeSelect().click();
+
+    cy.get('[data-qa-pagination-page-size-option="100"]')
+      .should('exist')
+      .click();
+
+    // Validating contents of Overview Section
+    cy.get('[data-qa-section="Overview"]').within(() => {
+      // Validate Name field
+      cy.findByText('Name:').should('be.visible');
+      cy.findByText(label).should('be.visible');
+
+      // Validate Description field
+      cy.findByText('Channel Type:').should('be.visible');
+      cy.findByText(
+        channel_type[0].toUpperCase() + channel_type.slice(1)
+      ).should('be.visible');
+
+      // Validate Created By field
+      cy.findByText('Created by:').should('be.visible');
+      cy.findByText(created_by).should('be.visible');
+
+      // Validate Created Time field
+      cy.findByText('Creation Time:').should('be.visible');
+
+      cy.findByText(
+        formatDate(created, {
+          format: 'MMM dd, yyyy, h:mm a',
+          timezone: 'GMT',
+        })
+      ).should('be.visible');
+
+      // Validate Last Modified field
+      cy.findByText('Last Modified:').should('be.visible');
+
+      cy.findByText(
+        formatDate(updated, {
+          format: 'MMM dd, yyyy, h:mm a',
+          timezone: 'GMT',
+        })
+      ).should('be.visible');
+
+      cy.findByText('Last Modified by:').should('be.visible');
+      cy.findByText(updated_by).should('be.visible');
+    });
+    cy.get('[data-qa-section="Details"]').within(() => {
+      // Validate Recipient type field
+      cy.findByText('Recipient Type:').should('be.visible');
+      cy.get('[data-qa-chip="user"]').should('contain.text', type);
+
+      // Validate Recipients field
+      if (channel_type === 'email' && details && 'email' in details) {
+        const usernames = details.email.usernames;
+        usernames.forEach((username) => {
+          cy.get(`[data-qa-chip="${username}"]`)
+            .contains(username)
+            .should('be.visible');
+        });
+      }
+    });
+
+    cy.get('[data-qa-section="Associated Alerts"]').within(() => {
+      // Validate for search box
+      cy.findByPlaceholderText('Search for Alerts').should('be.visible');
+
+      cy.findByPlaceholderText('Search for Alerts').as('searchInput');
+
+      const expectedHeaders = ['Alert Name', 'Service'];
+
+      // Validate table headers
+      cy.get('[data-qa="associated-alerts-table"]').within(() => {
+        expectedHeaders.forEach((header) => {
+          cy.findByText(header).should('have.text', header);
+        });
+      });
+
+      // Validate alert details
+      mockAlerts.forEach((alert) => {
+        cy.get(`[data-qa-alert-cell="${alert.id}"]`).within(() => {
+          cy.contains(cloudPulseServiceMap[alert.service_type])
+            .should('be.visible')
+            .and('have.text', `${cloudPulseServiceMap[alert.service_type]}beta`);
+        });
+      });
+      // Validate search functionality
+      cy.get('@searchInput').clear();
+      cy.get('@searchInput').type(mockAlerts[0].label);
+      cy.get('[data-qa="associated-alerts-table"]')
+        .find('tbody')
+        .last()
+        .within(() => {
+          cy.get('tr').should('have.length', 1);
+          cy.get(`[data-qa-alert-cell="${mockAlerts[0].id}"]`).should(
+            'be.visible'
+          );
+        });
+      cy.get('@searchInput').clear();
+
+      // Validate for search a service type
+      cy.findByPlaceholderText('Select a Service').as('searchServiceType');
+      cy.get('@searchServiceType').clear();
+      cy.get('@searchServiceType').type('Databases{enter}');
+
+      // Verify that the table displays only alerts related to 'dbaas' service type
+      const dbaasAlerts = mockAlerts.filter(
+        (alert) => alert.service_type === 'dbaas'
+      );
+      cy.get('[data-qa="associated-alerts-table"]')
+        .find('tbody')
+        .last()
+        .within(() => {
+          cy.get('tr').should('have.length', dbaasAlerts.length);
+          dbaasAlerts.forEach((alert) => {
+            cy.get(`[data-qa-alert-cell="${alert.id}"]`).should('be.visible');
+          });
+        });
+
+      // Clear the service filter by clicking the delete icon on the chip
+      cy.contains('.MuiChip-label', 'Databases')
+        .parent()
+        .find('.MuiChip-deleteIcon')
+        .click();
+
+      // Validate the sorting functionality for Alert Name
+      cy.get('[data-qa="associated-alerts-table"]').within(() => {
+        // Click on the 'Alert Name' header to sort in descending order
+        ui.heading.findByText('label').click();
+
+        // Verify descending sort order
+        ui.heading
+          .findByText('label')
+          .should('have.attr', 'aria-sort', 'descending');
+
+        // Sort the mock alerts by label in descending order
+        const sortedAlertsDesc = [...mockAlerts].sort((a, b) =>
+          b.label.localeCompare(a.label)
+        );
+
+        // Verify that the table rows are in descending order
+        cy.get('[data-qa-alert-cell]').should(($cells) => {
+          const actualOrder = $cells
+            .map((_, cell) =>
+              parseInt(
+                cell
+                  .getAttribute('data-qa-alert-cell')
+                  ?.replace('table-row-', '') || '0',
+                10
+              )
+            )
+            .get();
+          sortedAlertsDesc.forEach((alert, index) => {
+            expect(actualOrder[index]).to.equal(alert.id);
+          });
+        });
+
+        // Click again to sort in ascending order
+        ui.heading.findByText('label').click();
+        ui.heading
+          .findByText('label')
+          .should('have.attr', 'aria-sort', 'ascending');
+
+        // Sort the mock alerts by label in ascending order
+        const sortedAlertsAsc = [...mockAlerts].sort((a, b) =>
+          a.label.localeCompare(b.label)
+        );
+
+        // Verify that the table rows are in ascending order
+        cy.get('[data-qa-alert-cell]').should(($cells) => {
+          const actualOrder = $cells
+            .map((_, cell) =>
+              parseInt(
+                cell
+                  .getAttribute('data-qa-alert-cell')
+                  ?.replace('table-row-', '') || '0',
+                10
+              )
+            )
+            .get();
+          sortedAlertsAsc.forEach((alert, index) => {
+            expect(actualOrder[index]).to.equal(alert.id);
+          });
+        });
+      });
+
+      // Validate the sorting functionality for service Type
+      cy.get('[data-qa="associated-alerts-table"]').within(() => {
+        // Click on the 'Service' header to sort in descending order
+        ui.heading.findByText('service_type_label').click();
+
+        // Verify descending sort order
+        ui.heading
+          .findByText('service_type_label')
+          .should('have.attr', 'aria-sort', 'descending');
+
+        // Sort the mock alerts by service type in descending order
+        const sortedServiceTypeDesc = [...mockAlerts].sort((a, b) =>
+          cloudPulseServiceMap[b.service_type].localeCompare(
+            cloudPulseServiceMap[a.service_type]
+          )
+        );
+        // Verify that the table rows are in descending order
+        cy.get('[data-qa-alert-cell]').should(($cells) => {
+          const actualOrder = $cells
+            .map((_, cell) =>
+              parseInt(
+                cell
+                  .getAttribute('data-qa-alert-cell')
+                  ?.replace('table-row-', '') || '0',
+                10
+              )
+            )
+            .get();
+          sortedServiceTypeDesc.forEach((alert, index) => {
+            expect(actualOrder[index]).to.equal(alert.id);
+          });
+        });
+
+        // Click again to sort in ascending order
+        ui.heading.findByText('service_type_label').click();
+        ui.heading
+          .findByText('service_type_label')
+          .should('have.attr', 'aria-sort', 'ascending');
+
+        // Sort the mock alerts by service type in ascending order
+        const sortedServiceTypeAsc = [...mockAlerts].sort((a, b) =>
+          cloudPulseServiceMap[a.service_type].localeCompare(
+            cloudPulseServiceMap[b.service_type]
+          )
+        );
+
+        // Verify that the table rows are in ascending order
+        cy.get('[data-qa-alert-cell]').should(($cells) => {
+          const actualOrder = $cells
+            .map((_, cell) =>
+              parseInt(
+                cell
+                  .getAttribute('data-qa-alert-cell')
+                  ?.replace('table-row-', '') || '0',
+                10
+              )
+            )
+            .get();
+          sortedServiceTypeAsc.forEach((alert, index) => {
+            expect(actualOrder[index]).to.equal(alert.id);
+          });
+        });
+      });
+    });
+  });
+});
