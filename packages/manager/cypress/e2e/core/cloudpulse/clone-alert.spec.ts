@@ -25,7 +25,6 @@ import {
   entitiesFactory,
   flagsFactory,
 } from 'src/factories';
-import { CLONE_ALERT_SUCCESS_MESSAGE } from 'src/features/CloudPulse/Alerts/constants';
 
 import type {
   AlertStatusType,
@@ -387,7 +386,7 @@ describe('Integration Tests for CloudPulse Alert Clone', () => {
 
       cy.findByText('2 of 5 entities are selected.').should('be.visible');
       cy.findByRole('button', { name: 'Submit' }).click();
-      ui.toast.assertMessage(CLONE_ALERT_SUCCESS_MESSAGE);
+      ui.toast.assertMessage('Alert definition was successfully cloned.');
 
       // Section 5: Verify cloned alert in list
       cy.findByPlaceholderText('Search for Alerts')
