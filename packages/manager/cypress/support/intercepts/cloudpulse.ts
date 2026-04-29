@@ -958,3 +958,27 @@ export const mockGetEntitiesByAlertId = (
     paginateResponse(entities)
   );
 };
+/**
+ * Mocks the API response for cloning an alert definition for a specific service type.
+ *
+ * Intercepts POST requests to the clone endpoint for a given service type and alert ID,
+ * returning the provided cloned alert definition as the mock response.
+ *
+ * @param {string} serviceType - The service type (e.g., "dbaas", "linode", "firewall").
+ * @param {Alert} alert - The alert object to clone.
+ *
+ * @returns {Cypress.Chainable<null>} A Cypress chainable representing the intercepted request.
+ */
+export const mockCloneAlert = (
+  serviceType: string,
+  alert: Alert
+): Cypress.Chainable<null> => {
+  return cy.intercept(
+    'POST',
+    apiMatcher(
+      `monitor/services/${serviceType}/alert-definitions/${alert.id}/clone`
+    ),
+    makeResponse(alert)
+  );
+};
+
