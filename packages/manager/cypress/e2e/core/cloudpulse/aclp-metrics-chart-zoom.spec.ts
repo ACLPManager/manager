@@ -22,6 +22,7 @@ import {
 } from 'support/intercepts/profile';
 import { mockGetRegions } from 'support/intercepts/regions';
 import { ui } from 'support/ui';
+import 'cypress-real-events/support';
 
 import {
   accountFactory,
@@ -142,25 +143,35 @@ const getRechartsPointValues = (
 ): Cypress.Chainable<string[]> => {
   const actualList: string[] = [];
 
-  // chain 1: scroll only
   cy.get(widgetSelector).scrollIntoView();
 
-  // chain 2: all interactions
-  cy.get(widgetSelector).then(($widget) => {
-    cy.wrap($widget)
-      .find('circle.recharts-area-dot')
-      .each(($dot) => {
-        cy.wrap($dot).trigger('mouseover', { force: true });
+  cy.get(widgetSelector)
+    .find('circle.recharts-area-dot')
+    .its('length')
+    .then((count) => {
+      const triggerNext = (index: number) => {
+        if (index >= count) return;
+
+        // Re-query by index every time — never hold a stale dot reference
+        cy.get(widgetSelector)
+          .find('circle.recharts-area-dot')
+          .eq(index)
+          .trigger('mouseover', { force: true });
+
         cy.wait(250);
-        cy.wrap($widget)
+
+        cy.get(widgetSelector)
           .find('.recharts-tooltip-wrapper', { timeout: 10000 })
           .should('be.visible')
           .invoke('text')
           .then((text) => {
             actualList.push(text.trim());
+            triggerNext(index + 1); // schedule next iteration after DOM settles
           });
-      });
-  });
+      };
+
+      triggerNext(0);
+    });
 
   return cy.then(() => actualList);
 };
@@ -183,12 +194,76 @@ const zoomInOnChart = (
   fromIndex = 3,
   toIndex = 6
 ): void => {
-  cy.get(widgetSelector).within(() => {
-    cy.get('circle.recharts-area-dot').as('rechartsDots');
-    cy.get('@rechartsDots').eq(fromIndex).trigger('mousedown', { force: true });
-    cy.get('@rechartsDots').eq(toIndex).trigger('mousemove', { force: true });
-    cy.get('@rechartsDots').eq(toIndex).trigger('mouseup', { force: true });
-  });
+  cy.get(widgetSelector).should('be.visible').scrollIntoView();
+
+  // Prevent tooltip overlay from intercepting mouse events
+  cy.get(widgetSelector)
+    .find('.recharts-tooltip-wrapper')
+    .invoke('css', 'pointer-events', 'none');
+
+  // Get starting point
+  cy.get(widgetSelector)
+    .find('circle.recharts-area-dot')
+    .eq(fromIndex)
+    .should('exist')
+    .then(($fromDot) => {
+      const fromX = Number($fromDot.attr('cx'));
+      const fromY = Number($fromDot.attr('cy'));
+
+      // Get ending point
+      cy.get(widgetSelector)
+        .find('circle.recharts-area-dot')
+        .eq(toIndex)
+        .should('exist')
+        .then(($toDot) => {
+          const toX = Number($toDot.attr('cx'));
+          const toY = Number($toDot.attr('cy'));
+
+          // Use actual SVG surface
+          cy.get(widgetSelector)
+            .find('svg.recharts-surface')
+            .should('exist')
+            .then(($svg) => {
+              const rect = $svg[0].getBoundingClientRect();
+
+              // Convert SVG coordinates to viewport coordinates
+              const startX = rect.left + fromX;
+              const startY = rect.top + fromY;
+
+              // Add extra drag distance
+              const endX = rect.left + toX + 120;
+              const endY = rect.top + toY;
+
+              // Move mouse to start position
+              cy.wrap($svg).realMouseMove(startX, startY);
+
+              // Hold left mouse button
+              cy.wrap($svg).realMouseDown({
+                button: 'left',
+              });
+
+              cy.wait(100);
+
+              // Perform actual drag
+              cy.wrap($svg).realMouseMove(startX + 40, startY);
+
+              cy.wait(100);
+
+              cy.wrap($svg).realMouseMove(startX + 80, startY);
+
+              cy.wait(100);
+
+              cy.wrap($svg).realMouseMove(endX, endY);
+
+              cy.wait(300);
+
+              // Release mouse
+              cy.wrap($svg).realMouseUp();
+
+              cy.wait(500);
+            });
+        });
+    });
 };
 /**
  * Asserts the number of visible Recharts area chart dots inside a widget.
@@ -307,7 +382,7 @@ describe('Integration tests for verifying Cloudpulse Zoom in', () => {
 
     // Validate data points Before zoom-in
 
-    getRechartsPointValues(widgetSelector).as('expectedValues');
+     getRechartsPointValues(widgetSelector).as('expectedValues');
     getLegendRow(widgetSelector, '98.57 OPS', '57.48 OPS', '27.41 OPS');
 
     // Validate data points after zoom-in
@@ -316,7 +391,7 @@ describe('Integration tests for verifying Cloudpulse Zoom in', () => {
 
     getRechartsPointValues(widgetSelector).as('actualValues');
 
-    getLegendRow(widgetSelector, '89.5 OPS', '60.58 OPS', '65.45 OPS');
+    getLegendRow(widgetSelector, '98.57 OPS', '67.98 OPS', '28.3 OPS');
 
     cy.get('@expectedValues').then((expectedRaw) => {
       const expectedValues = expectedRaw as unknown as string[];
@@ -350,7 +425,7 @@ describe('Integration tests for verifying Cloudpulse Zoom in', () => {
     assertRechartsDotsCount(widgetSelector, 25);
     cy.contains('button', 'Reset Zoom').should('not.exist');
 
-    cy.get('@getResetMetrics.all').should('have.length', 4);
+    cy.get('@getResetMetrics.all').should('have.length',4 );
   });
 
   it('maintains zoom view after global refresh and clearing mandatory filters', () => {
@@ -359,7 +434,7 @@ describe('Integration tests for verifying Cloudpulse Zoom in', () => {
       .should('be.enabled')
       .click();
 
-    assertRechartsDotsCount(widgetSelector, 4);
+    assertRechartsDotsCount(widgetSelector, 7);
 
     cy.contains('button', 'Reset Zoom').should('be.visible');
   });
@@ -393,7 +468,7 @@ describe('Integration tests for verifying Cloudpulse Zoom in', () => {
     cy.findByTestId('apply').should('be.visible').and('be.enabled').click();
 
     ui.buttonGroup.findButtonByTitle('Reset Zoom').should('be.visible');
-    assertRechartsDotsCount(widgetSelector, 4);
+    assertRechartsDotsCount(widgetSelector, 7);
 
     cy.get('@dashboardGroupByBtn').should('be.visible').click();
     cy.get('[data-qa-autocomplete="Dimensions"]').within(() => {
