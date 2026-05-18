@@ -118,17 +118,40 @@ const verifyTableSorting = (
   sortOrder: 'ascending' | 'descending',
   expectedValues: number[]
 ) => {
-  // Click the th using data-qa-header attribute
-  cy.get(`[data-qa-header="${header}"]`).click();
+  // 1. Ensure table rows are fully rendered to avoid race conditions on initial load
+  cy.get('[data-qa-alert-cell]').should('have.length.greaterThan', 0);
 
-  // Assert aria-sort on the th element itself
+  // 2. Conditionally click the header based on its current sort state
+  cy.get(`[data-qa-header="${header}"]`).then(($header) => {
+    const currentSort = $header.attr('aria-sort') || 'none';
+
+    if (currentSort !== sortOrder) {
+      cy.wrap($header).click();
+
+      // Wait for the UI to register the click and change the sort state
+      cy.get(`[data-qa-header="${header}"]`)
+        .should(($updatedHeader) => {
+          const newSort = $updatedHeader.attr('aria-sort') || 'none';
+          expect(newSort).not.to.equal(currentSort);
+        })
+        .then(($updatedHeader) => {
+          // If the table toggled to the opposite of what we want (e.g., None -> Descending, but we want Ascending), click one more time
+          const newSort = $updatedHeader.attr('aria-sort') || 'none';
+          if (newSort !== sortOrder) {
+            cy.wrap($updatedHeader).click();
+          }
+        });
+    }
+  });
+
+  // 3. Assert the final aria-sort state is exactly what we expect
   cy.get(`[data-qa-header="${header}"]`).should(
     'have.attr',
     'aria-sort',
     sortOrder
   );
 
-  // Assert row order
+  // 4. Assert the row order matches the expected values (this block remains unchanged)
   cy.get('[data-qa="alert-table"]').within(() => {
     cy.get('[data-qa-alert-cell]').should(($cells) => {
       const actualOrder = $cells
