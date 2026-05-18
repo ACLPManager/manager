@@ -192,8 +192,6 @@ describe('Integration Tests for CloudPulse Alert Clone', () => {
     mockGetDatabases(databases);
   });
 
-  // ─── Test 1: Clone menu item visibility / enabled state per status ───────────
-
   (
     Object.entries(alertMenuItems) as [AlertStatusType, AlertMenuItem[]][]
   ).forEach(([status, items]) => {
