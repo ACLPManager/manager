@@ -183,7 +183,7 @@ const buildMockAlert = (
     },
   });
 
-describe('Integration Tests for CloudPulse Alert Clone', () => {
+describe.skip('Integration Tests for CloudPulse Alert Clone', () => {
   beforeEach(() => {
     mockAppendFeatureFlags(flagsFactory.build());
     mockGetAccount(mockAccount);

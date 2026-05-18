@@ -352,7 +352,7 @@ describe('Integration Tests for DBaaS Dashboard ', () => {
     ui.button.findByTitle('Filters').should('be.visible').click();
 
     // Verify that the applied filters
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get(`[data-qa-value="Database Engine ${engine}"]`)
         .should('be.visible')
         .should('have.text', engine);

@@ -148,7 +148,7 @@ describe('Integration Tests for DBaaS Dashboard ', () => {
     ui.button.findByTitle('Filters').should('be.visible').click();
 
     // Verify that the applied filters
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get(`[data-qa-value="Region US, Chicago, IL"]`)
         .should('be.visible')
         .should('have.text', 'US, Chicago, IL');
@@ -188,7 +188,7 @@ describe('Integration Tests for DBaaS Dashboard ', () => {
     ui.button.findByTitle('Filters').should('be.visible').click();
 
     // Verify that the applied filters
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('h3').should('have.length', '1'); // because cluster is mandatory
     });
   });
@@ -233,7 +233,7 @@ describe('Integration Tests for DBaaS Dashboard ', () => {
     ui.button.findByTitle('Filters').should('be.visible').click();
 
     // Verify that the applied filters
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('h3').should('have.length', '1'); // because cluster is mandatory
     });
   });
@@ -277,7 +277,7 @@ describe('Integration Tests for DBaaS Dashboard ', () => {
     ui.button.findByTitle('Filters').should('be.visible').click();
 
     // Verify that the applied filters
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('h3').should('have.length', '1'); // because cluster is mandatory
     });
   });
@@ -338,7 +338,7 @@ describe('Integration Tests for DBaaS Dashboard ', () => {
     ui.button.findByTitle('Filters').should('be.visible').click();
 
     // Verify that the applied filters
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get(`[data-qa-value="Region US, Chicago, IL"]`)
         .should('be.visible')
         .should('have.text', 'US, Chicago, IL');

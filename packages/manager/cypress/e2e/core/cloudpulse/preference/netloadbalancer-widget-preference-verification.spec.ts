@@ -208,7 +208,7 @@ describe('Integration Tests for netloadbalancer Dashboard ', () => {
     ui.button.findByTitle('Filters').should('be.visible').click();
 
     // Verify that the applied filters
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="Region US, Chicago, IL"]')
         .should('be.visible')
         .should('have.text', 'US, Chicago, IL');
@@ -296,7 +296,7 @@ describe('Integration Tests for netloadbalancer Dashboard ', () => {
       .click();
 
     // Verify none of these applied filters exist after clear
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').should('not.exist');
+    cy.get('[data-testid="applied-filter"]').should('not.exist');
     cy.wait('@updateDashbaordPreference').then(({ request, response }) => {
       const responseBody =
         response?.body &&
@@ -323,7 +323,7 @@ describe('Integration Tests for netloadbalancer Dashboard ', () => {
     ui.button.findByTitle('Filters').should('be.visible').click();
 
     // Verify none of these applied filters exist after clear
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="Region US, Chicago, IL"]').should('not.exist');
       cy.get('[data-qa-value="Ports 80"]').should('exist');
       cy.get('[data-qa-value="IP Versions IPv6"]').should('exist');
@@ -374,7 +374,7 @@ describe('Integration Tests for netloadbalancer Dashboard ', () => {
 
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="Region US, Chicago, IL"]').should('be.visible');
       cy.get('[data-qa-value="Ports 80"]').should('exist');
       cy.get('[data-qa-value="IP Versions IPv6"]').should('exist');
@@ -423,7 +423,7 @@ describe('Integration Tests for netloadbalancer Dashboard ', () => {
 
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="Region US, Chicago, IL"]').should('be.visible');
       cy.get('[data-qa-value="Ports 80"]').should('not.exist');
       cy.get('[data-qa-value="IP Versions IPv6"]').should('exist');
@@ -475,7 +475,7 @@ describe('Integration Tests for netloadbalancer Dashboard ', () => {
 
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="Region US, Chicago, IL"]').should('be.visible');
       cy.get('[data-qa-value="Ports 80"]').should('be.visible');
       cy.get(`[data-qa-value="Network Load Balancers ${clusterName}"]`)
