@@ -1,6 +1,4 @@
-/* eslint-disable sonarjs/slow-regex */
 /* eslint-disable cypress/no-unnecessary-waiting */
-/* eslint-disable cypress/unsafe-to-chain-command */
 
 /**
  * @file Integration Tests for CloudPulse Custom and Preset Verification
@@ -89,7 +87,6 @@ const databaseMock: Database = databaseFactory.build({
   type: engine,
 });
 
-// It will be fixed
 describe('Integration tests for verifying Cloudpulse custom and preset configurations', () => {
   const now = new Date();
   const end = new Date(now.getTime() + 5.5 * 60 * 60 * 1000); // Adjust to IST
@@ -276,87 +273,122 @@ describe('Integration tests for verifying Cloudpulse custom and preset configura
 
   it('ensures graph tooltips reflect accurate metric data', () => {
     WidgetMap.forEach(({ title, unit }) => {
-      const expectedList: string[] = [];
       const widgetSelector = `[data-qa-widget="${title}"]`;
 
-      // Extract and process expected data
-      cy.get('@getMetrics.all').each((xhr: unknown) => {
-        const interception = xhr as Interception;
-        const { metrics: metric } = interception.request.body;
-        const responseData = interception.response?.body;
-
-        if (!responseData?.data?.result?.[0]?.values) {
-          cy.log('No values found in response data');
-          return;
-        }
-
-        const values = responseData.data.result[0].values;
-
-        // Match the metric data with the current widget title
-        const metricData = metrics.find(({ name }) => name === metric[0]?.name);
-        if (!metricData || metricData.title !== title) return;
-
-        values.forEach(([epoch, value]: [number, string]) => {
-          const formattedDate = formatEpochToReadable(epoch);
-          expectedList.push(
-            `${formattedDate}${title}${value} ${unit}` // ✅ removed (unit)
-          );
-        });
-      });
-
-      // Collect and validate actual data
-      const actualList: string[] = [];
-      cy.get(widgetSelector)
-        .scrollIntoView()
-        .within(() => {
-          cy.get('circle.recharts-area-dot').each(($dot) => {
-            cy.wrap($dot)
-              .trigger('mouseover', { force: true })
-              .should('have.css', 'opacity', '1')
-              .wait(500)
-              .get('.recharts-tooltip-wrapper', { timeout: 10000 })
-              .should('be.visible')
-              .invoke('text')
-              .then((text) => actualList.push(text.trim()));
+      // 1. Ensure Cypress waits until the background mock response body is fully attached
+      cy.get('@getMetrics.all')
+        .should((interceptions: any) => {
+          const relevant = interceptions.filter((xhr: any) => {
+            const { metrics: metric } = xhr.request.body;
+            const metricData = metrics.find(
+              ({ name }) => name === metric[0]?.name
+            );
+            return metricData && metricData.title === title;
           });
+
+          expect(relevant.length).to.be.greaterThan(0);
+          expect(relevant[relevant.length - 1].response?.body).to.exist;
         })
-        .then(() => {
-          // Compare expected and actual data
-          expectedList.forEach((expected, index) => {
-            const actual = actualList[index];
-            expect(normalizeString(actual)).to.eq(normalizeString(expected));
+        .then((interceptions: any) => {
+          const relevantInterceptions = interceptions.filter((xhr: any) => {
+            const { metrics: metric } = xhr.request.body;
+            const metricData = metrics.find(
+              ({ name }) => name === metric[0]?.name
+            );
+            return metricData && metricData.title === title;
           });
+
+          const latestInterception =
+            relevantInterceptions[relevantInterceptions.length - 1];
+          const responseData = latestInterception.response.body;
+          const results = responseData.data?.result || [];
+
+          // 2. Find the correct series matching the current node type filter ('secondary')
+          const matchingSeries =
+            results.find((res: any) => {
+              const targetTags = JSON.stringify(
+                res.metric || res.tags || {}
+              ).toLowerCase();
+              return targetTags.includes('secondary');
+            }) || results[0];
+
+          const apiValues = matchingSeries?.values || [];
+
+          // 3. Scroll to widget and initiate recursive dot validation
+          cy.get(widgetSelector).scrollIntoView();
+
+          cy.get(widgetSelector)
+            .find('circle.recharts-area-dot')
+            .its('length')
+            .then((count) => {
+              const checkDot = (index: number) => {
+                if (index >= count) return; // Exit condition
+
+                // Re-query by index every time to prevent detached DOM errors
+                cy.get(widgetSelector)
+                  .find('circle.recharts-area-dot')
+                  .eq(index)
+                  .trigger('mouseover', { force: true });
+
+                // Allow React/Recharts state to settle and render the tooltip
+                cy.wait(250);
+
+                cy.get(widgetSelector)
+                  .find('.recharts-tooltip-wrapper', { timeout: 10000 })
+                  .should('be.visible')
+                  .invoke('text')
+                  .then((text) => {
+                    // Standardize white spaces for reliable parsing
+                    const cleanText = text.replace(/\s+/g, ' ').trim();
+
+                    // Regex maps everything up to the widget title, then captures the value right before the unit
+                    const regex = new RegExp(
+                      `(.*)${title}\\s*([\\d.]+)\\s*${unit}`
+                    );
+                    const match = cleanText.match(regex);
+
+                    if (!match) {
+                      throw new Error(
+                        `Failed to parse tooltip text: "${cleanText}" for widget "${title}"`
+                      );
+                    }
+
+                    const domDateStr = match[1].trim();
+                    const domValue = parseFloat(match[2]);
+
+                    // 4. Convert DOM date string to a universal epoch timestamp
+                    // Force the date to be parsed as GMT to match the mocked user profile
+                    const domEpoch = Math.round(
+                      new Date(`${domDateStr} GMT`).getTime() / 1000
+                    );
+
+                    // 5. Look up the corresponding data point in the API array by matching timestamps
+                    const matchingApiPoint = apiValues.find(
+                      ([apiEpoch]: [number, string]) => {
+                        return Math.abs(apiEpoch - domEpoch) <= 60; // 60-second tolerance window
+                      }
+                    );
+
+                    if (!matchingApiPoint) {
+                      throw new Error(
+                        `No matching API data point found for DOM timestamp: ${domDateStr} (${domEpoch})`
+                      );
+                    }
+
+                    const apiValue = parseFloat(matchingApiPoint[1]);
+
+                    // 6. Execute direct data validation
+                    expect(domValue).to.eq(apiValue);
+
+                    // 7. Proceed to the next dot in the chart
+                    checkDot(index + 1);
+                  });
+              };
+
+              // Start the recursive check
+              checkDot(0);
+            });
         });
     });
   });
-
-  // Converts epoch time to a readable format
-  function formatEpochToReadable(epoch: number): string {
-    return new Date(epoch * 1000)
-      .toLocaleString('en-US', {
-        timeZone: 'GMT',
-        year: 'numeric',
-        month: 'short',
-        day: '2-digit',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      })
-      .replace(/\bam\b/gi, 'AM')
-      .replace(/\bpm\b/gi, 'PM');
-  }
-
-  function normalizeString(str: string): string {
-    return str
-      .replace(/(\d)([A-Za-z])/g, '$1 $2') // Add space between numbers and letters
-      .replace(/([a-zA-Z])(\d)/g, '$1 $2') // Add space between letters and numbers
-      .replace(/(\b\w{3})\s+(\d)(,)/g, '$1 0$2$3') // Zero-pad single-digit days
-      .replace(/(\d):(\d{2})([APM]{2})/g, '0$1:$2 $3') // Zero-pad single-digit hours
-      .replace(/\s*,\s*/g, ', ') // Normalize comma spacing
-      .replace(
-        /(\d+)\.00|(\d+\.\d)0(?!\d)/g,
-        (_, intPart, decPart) => intPart || decPart
-      ) // Remove trailing .00 or 0 from decimals
-      .replace(/\s+/g, ''); // Remove all spaces
-  }
 });
