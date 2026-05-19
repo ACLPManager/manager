@@ -367,19 +367,30 @@ describe('Integration tests for verifying Cloudpulse custom and preset configura
 
     // --- Validate API requests ---
 
+    // --- Validate API requests ---
     cy.get('@getMetrics.all').then((calls) => {
-      const lastFourCalls = (calls as unknown as Interception[]).slice(-4);
+      const absoluteCalls = (calls as unknown as Interception[]).filter(
+        (call) => call.request.body?.absolute_time_duration !== undefined
+      );
 
-      lastFourCalls.forEach((call) => {
-        const {
-          request: { body },
-        } = call;
-        expect(formatToUtcDateTime(body.absolute_time_duration.start)).to.equal(
-          convertToGmt(startActualDate)
-        );
-        expect(formatToUtcDateTime(body.absolute_time_duration.end)).to.equal(
-          convertToGmt(endActualDate)
-        );
+      // Expect exactly 4 calls with absolute time (one per widget)
+      expect(
+        absoluteCalls.length,
+        'Expected 4 absolute time duration calls'
+      ).to.eq(4);
+
+      absoluteCalls.forEach((call) => {
+        const { body } = call.request;
+
+        expect(
+          formatToUtcDateTime(body.absolute_time_duration.start),
+          'Start time mismatch'
+        ).to.equal(convertToGmt(startActualDate));
+
+        expect(
+          formatToUtcDateTime(body.absolute_time_duration.end),
+          'End time mismatch'
+        ).to.equal(convertToGmt(endActualDate));
       });
     });
     // --- Test Time Range Presets ---

@@ -370,7 +370,7 @@ describe('Integration Tests for Logs Dashboard', () => {
     mockGetStreamById(streams.id, streams).as('fetchStream');
 
     // ── Navigation ──
-    cy.visitWithLogin(`logs/delivery/streams/${streams.id}/edit`);
+    cy.visitWithLogin(`logs/delivery/streams/${streams.id}/metrics`);
     cy.wait('@fetchStream');
     cy.wait('@fetchDashboards').then((interception: Interception) => {
       const dashboards = interception.response?.body?.data as Dashboard[];

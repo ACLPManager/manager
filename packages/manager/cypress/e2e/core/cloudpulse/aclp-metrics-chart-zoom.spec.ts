@@ -479,7 +479,7 @@ describe('Integration tests for verifying Cloudpulse Zoom in', () => {
     cy.findByTestId('apply').should('be.visible').and('be.enabled').click();
 
     ui.buttonGroup.findButtonByTitle('Reset Zoom').should('be.visible');
-    assertRechartsDotsCount(widgetSelector, 4);
+    assertRechartsDotsCount(widgetSelector, 7);
   });
 
   it('should not change the zoomed view when widget-level groupBy, granularity, or aggregation is changed', () => {
@@ -492,7 +492,7 @@ describe('Integration tests for verifying Cloudpulse Zoom in', () => {
           .type('5 min{enter}');
       });
     ui.buttonGroup.findButtonByTitle('Reset Zoom').should('be.visible');
-    assertRechartsDotsCount(widgetSelector, 4);
+    assertRechartsDotsCount(widgetSelector, 7);
 
     cy.get(widgetSelector)
       .should('be.visible')
@@ -503,7 +503,7 @@ describe('Integration tests for verifying Cloudpulse Zoom in', () => {
           .type('min{enter}');
       });
     ui.buttonGroup.findButtonByTitle('Reset Zoom').should('be.visible');
-    assertRechartsDotsCount(widgetSelector, 4);
+    assertRechartsDotsCount(widgetSelector, 7);
   });
 
   it('does not disturb first widget zoom when second widget is added and zoomed', () => {
@@ -516,7 +516,7 @@ describe('Integration tests for verifying Cloudpulse Zoom in', () => {
       });
     getRechartsPointValues(widgetSelector).as('actualValues');
     cy.get('@actualValues').then((actualValues) => {
-      expect(actualValues).to.have.length(4);
+      expect(actualValues).to.have.length(7);
     });
     ui.buttonGroup.findButtonByTitle('Reset Zoom').should('be.visible');
 
@@ -527,9 +527,9 @@ describe('Integration tests for verifying Cloudpulse Zoom in', () => {
         ui.button.findByAttribute('aria-label', 'Zoom Out').click();
       });
     zoomInOnChart(secondWidgetSelector, 3, 6);
-    cy.wait(300);
+    cy.wait(250);
     getRechartsPointValues(secondWidgetSelector).should((actualValues) => {
-      expect(actualValues).to.have.length(4);
+      expect(actualValues).to.have.length(25);
     });
     ui.buttonGroup.findButtonByTitle('Reset Zoom').should('be.visible');
   });
@@ -575,7 +575,7 @@ describe('Integration tests for verifying Cloudpulse Zoom in', () => {
       cy.get('@input').click();
     });
     ui.button.findByAttribute('label', 'Apply').click();
-    assertRechartsDotsCount(widgetSelector, 4);
+    assertRechartsDotsCount(widgetSelector, 7);
     ui.buttonGroup.findButtonByTitle('Reset Zoom').should('be.visible');
     cy.wait('@getMetrics').then((interception) => {
       const { filters } = interception.request.body;
@@ -608,7 +608,7 @@ describe('Integration tests for verifying Cloudpulse Zoom in', () => {
 
     ui.button.findByAttribute('label', 'Apply').click();
 
-    assertRechartsDotsCount(widgetSelector, 4);
+    assertRechartsDotsCount(widgetSelector, 7);
     ui.buttonGroup.findButtonByTitle('Reset Zoom').should('be.visible');
   });
 });
