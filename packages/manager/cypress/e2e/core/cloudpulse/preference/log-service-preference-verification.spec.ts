@@ -149,7 +149,7 @@ describe('Integration Tests for Logs Dashboard', () => {
     waitForDashboardToLoad();
     ui.button.findByTitle('Filters').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]')
+    cy.get('[data-testid="applied-filter"]')
       .should('be.visible')
       .within(() => {
         verifyFilterExists('Stream Names', streamName);
@@ -209,7 +209,7 @@ describe('Integration Tests for Logs Dashboard', () => {
       .find('button[aria-label="Clear"]')
       .click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').should('not.exist');
+    cy.get('[data-testid="applied-filter"]').should('not.exist');
 
     cy.wait('@updateDashboardPreference').then(({ request, response }) => {
       const responseBody =
@@ -240,7 +240,7 @@ describe('Integration Tests for Logs Dashboard', () => {
 
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]')
+    cy.get('[data-testid="applied-filter"]')
       .should('be.visible')
       .within(() => {
         verifyFilterNotExists('Stream Names', streamName);
@@ -290,7 +290,7 @@ describe('Integration Tests for Logs Dashboard', () => {
       .blur();
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]')
+    cy.get('[data-testid="applied-filter"]')
       .should('be.visible')
       .within(() => {
         verifyFilterExists('Stream Names', streamName);

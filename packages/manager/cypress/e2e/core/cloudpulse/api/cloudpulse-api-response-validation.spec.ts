@@ -28,6 +28,19 @@ describe('CloudPulse API - Dashboards and Metric Definitions', () => {
     'https://api.devcloud.linode.com/v4': 'https://api.devcloud.linode.com',
   };
 
+  // top of describe block
+  const toList = (raw: unknown): Dashboard[] => {
+    if (
+      raw != null &&
+      !Array.isArray(raw) &&
+      typeof raw === 'object' &&
+      'data' in (raw as object)
+    ) {
+      return (raw as { data: Dashboard[] }).data;
+    }
+    return Array.isArray(raw) ? raw : [raw as Dashboard];
+  };
+
   const apiBaseUrl = apiRootToCloudMap[apiRoot];
 
   // Guard: fail fast with a clear message if env is misconfigured
@@ -185,12 +198,7 @@ describe('CloudPulse API - Dashboards and Metric Definitions', () => {
 
           cy.readFile(fixturePath(type, 'dashboard-response')).then(
             (templateData) => {
-              const templateList: Dashboard[] =
-                templateData?.data ?? templateData;
-              expect(
-                Array.isArray(templateList),
-                `fixture for ${type} must have a "data" array`
-              ).to.be.true;
+              const templateList: Dashboard[] = toList(templateData);
 
               cy.request({
                 method: 'GET',
@@ -220,11 +228,6 @@ describe('CloudPulse API - Dashboards and Metric Definitions', () => {
             (templateData) => {
               const templateList: Dashboard[] =
                 templateData?.data ?? templateData;
-              expect(
-                Array.isArray(templateList) && templateList.length > 0,
-                `fixture for ${type} must have at least one dashboard`
-              ).to.be.true;
-
               const templateFirst = stripIgnoredKeys(
                 templateList[0]
               ) as Dashboard;

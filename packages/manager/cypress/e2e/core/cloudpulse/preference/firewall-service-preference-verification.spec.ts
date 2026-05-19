@@ -133,7 +133,7 @@ describe('Integration Tests for firewall linode Dashboard ', () => {
     ui.button.findByTitle('Filters').click();
 
     // Verify that the applied filters
-    cy.get('[data-qa-applied-filter-id="applied-filter"]')
+    cy.get('[data-testid="applied-filter"]')
       .should('be.visible')
       .within(() => {
         // Check Firewalls
@@ -224,7 +224,7 @@ describe('Integration Tests for firewall linode Dashboard ', () => {
       .click();
 
     // Verify none of these applied filters exist after clear
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').should('not.exist');
+    cy.get('[data-testid="applied-filter"]').should('not.exist');
     cy.wait('@updateDashbaordPreference').then(({ request, response }) => {
       const responseBody =
         response?.body &&
@@ -251,7 +251,7 @@ describe('Integration Tests for firewall linode Dashboard ', () => {
     ui.button.findByTitle('Filters').should('be.visible').click();
 
     // Verify none of these applied filters exist after clear
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="US, Newark, NJ, USA"]').should('not.exist');
       cy.get(`[data-qa-value="Firewalls ${firewalls}"]`).should('not.exist');
       cy.get('[data-qa-value="Interface Types VPC"]').should('be.visible');
@@ -298,7 +298,7 @@ describe('Integration Tests for firewall linode Dashboard ', () => {
 
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="US, Newark, NJ, USA"]').should('not.exist');
       cy.get(`[data-qa-value="Firewalls ${firewalls}"]`).should('be.visible');
       cy.get('[data-qa-value="Interface Types VPC"]').should('be.visible');
@@ -350,7 +350,7 @@ describe('Integration Tests for firewall linode Dashboard ', () => {
 
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="Linode Region US, Newark, NJ"]').should(
         'be.visible'
       );
@@ -398,7 +398,7 @@ describe('Integration Tests for firewall linode Dashboard ', () => {
 
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="Linode Region US, Newark, NJ"]').should(
         'be.visible'
       );

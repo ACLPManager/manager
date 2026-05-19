@@ -142,7 +142,7 @@ describe('Integration Tests for Linode Dashboard Preferences', () => {
     ui.button.findByTitle('Filters').click();
 
     // Verify that the applied filters
-    cy.get('[data-qa-applied-filter-id="applied-filter"]')
+    cy.get('[data-testid="applied-filter"]')
       .should('be.visible')
       .within(() => {
         cy.get(`[data-qa-value="Region US, Chicago, IL"]`)
@@ -221,7 +221,7 @@ describe('Integration Tests for Linode Dashboard Preferences', () => {
       .click();
 
     // Verify none of these applied filters exist after clear
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').should('not.exist');
+    cy.get('[data-testid="applied-filter"]').should('not.exist');
     cy.wait('@updateDashbaordPreference').then(({ request, response }) => {
       const responseBody =
         response?.body &&
@@ -240,18 +240,18 @@ describe('Integration Tests for Linode Dashboard Preferences', () => {
     cy.intercept('PUT', apiMatcher('profile/preferences')).as(
       'updateRegionPreference'
     );
-    // clear the Region filter
+
     cy.get('[data-qa-autocomplete="Region"]')
       .find('button[aria-label="Clear"]')
       .click();
 
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    // Verify none of these applied filters exist after clear
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="Region US, Chicago, IL"]').should('not.exist');
       cy.get(`[data-qa-value="Cluster ${resource}"]`).should('not.exist');
     });
+
     cy.wait('@updateRegionPreference').then(({ request, response }) => {
       const responseBody =
         response?.body &&
@@ -259,7 +259,9 @@ describe('Integration Tests for Linode Dashboard Preferences', () => {
           ? JSON.parse(response.body)
           : response.body);
 
-      const expectedAclpPreference = {
+      // Request body: what the app actually sends when region is cleared.
+      // Clearing region cascades to reset resources to [].
+      const expectedRequestPreference = {
         dashboardId: 9,
         groupBy: ['entity_id', 'state'],
         widgets: {
@@ -271,10 +273,32 @@ describe('Integration Tests for Linode Dashboard Preferences', () => {
             },
           },
         },
+        resources: ['1'],
       };
 
-      comparePreferences(expectedAclpPreference, responseBody?.aclpPreference);
-      comparePreferences(expectedAclpPreference, request.body.aclpPreference);
+      const expectedResponsePreference = {
+        dashboardId: 9,
+        groupBy: ['entity_id', 'state'],
+        widgets: {
+          'Ready Worker Nodes': {
+            label: 'Ready Worker Nodes',
+            timeGranularity: {
+              unit: 'hr',
+              value: 1,
+            },
+          },
+        },
+        resources: ['1'],
+      };
+
+      comparePreferences(
+        expectedRequestPreference,
+        request.body.aclpPreference
+      );
+      comparePreferences(
+        expectedResponsePreference,
+        responseBody?.aclpPreference
+      );
     });
   });
 
@@ -289,7 +313,7 @@ describe('Integration Tests for Linode Dashboard Preferences', () => {
 
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="Region US, Chicago, IL"]').should('be.visible');
       cy.get(`[data-qa-value="Clusters ${resource}"]`).should('not.exist');
     });

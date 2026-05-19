@@ -227,7 +227,7 @@ describe('Integration Tests for Object Storage Dashboard ', () => {
     ui.button.findByTitle('Filters').click();
 
     // Verify that the applied filters
-    cy.get('[data-qa-applied-filter-id="applied-filter"]')
+    cy.get('[data-testid="applied-filter"]')
       .should('be.visible')
       .within(() => {
         cy.get('[data-qa-value="Region US, Chicago, IL"]')
@@ -319,7 +319,7 @@ describe('Integration Tests for Object Storage Dashboard ', () => {
       .click();
 
     // Verify none of these applied filters exist after clear
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').should('not.exist');
+    cy.get('[data-testid="applied-filter"]').should('not.exist');
     cy.wait('@updateDashbaordPreference').then(({ request, response }) => {
       const responseBody =
         response?.body &&
@@ -346,7 +346,7 @@ describe('Integration Tests for Object Storage Dashboard ', () => {
     ui.button.findByTitle('Filters').should('be.visible').click();
 
     // Verify none of these applied filters exist after clear
-    cy.get('[data-qa-applied-filter-id="applied-filter"]')
+    cy.get('[data-testid="applied-filter"]')
       .should('be.visible')
       .within(() => {
         cy.get('[data-qa-value="Region US, Chicago, IL"]').should('not.exist');
@@ -397,7 +397,7 @@ describe('Integration Tests for Object Storage Dashboard ', () => {
 
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]')
+    cy.get('[data-testid="applied-filter"]')
       .should('be.visible')
       .within(() => {
         cy.get('[data-qa-value="Region US, Chicago, IL"]').should('be.visible');
@@ -462,7 +462,7 @@ describe('Integration Tests for Object Storage Dashboard ', () => {
 
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]')
+    cy.get('[data-testid="applied-filter"]')
       .should('be.visible')
       .within(() => {
         cy.get('[data-qa-value="Region US, Chicago, IL"]').should('be.visible');

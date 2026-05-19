@@ -4,12 +4,12 @@
             "id": 6,
             "type": "standard",
             "service_type": "objectstorage",
-            "label": "Object Storage usage",
+            "label": "Bucket Activity",
             "group_by": [
                 "entity_id"
             ],
             "created": "2025-11-05T10:12:17",
-            "updated": "2025-11-14T01:11:36",
+            "updated": "2026-04-14T05:37:35",
             "widgets": [
                 {
                     "metric": "obj_bucket_size",
@@ -29,6 +29,69 @@
                     "size": 6,
                     "chart_type": "line",
                     "y_label": "obj_bucket_num_objects",
+                    "aggregate_function": "sum"
+                },
+                {
+                    "metric": "obj_requests_rps",
+                    "unit": "Count",
+                    "label": "Requests per second",
+                    "color": "default",
+                    "size": 6,
+                    "chart_type": "line",
+                    "y_label": "obj_requests_rps",
+                    "group_by": [
+                        "request_type"
+                    ],
+                    "aggregate_function": "sum"
+                },
+                {
+                    "metric": "obj_ttfb_average",
+                    "unit": "ms",
+                    "label": "Average Time To First Byte (TTFB)",
+                    "color": "default",
+                    "size": 6,
+                    "chart_type": "line",
+                    "y_label": "obj_ttfb_average",
+                    "aggregate_function": "avg"
+                },
+                {
+                    "metric": "obj_egress_throughput",
+                    "unit": "Bps",
+                    "label": "Egress Throughput",
+                    "color": "default",
+                    "size": 6,
+                    "chart_type": "line",
+                    "y_label": "obj_egress_throughput",
+                    "aggregate_function": "sum"
+                },
+                {
+                    "metric": "obj_ingress_throughput",
+                    "unit": "Bps",
+                    "label": "Ingress Throughput",
+                    "color": "default",
+                    "size": 6,
+                    "chart_type": "line",
+                    "y_label": "obj_ingress_throughput",
+                    "aggregate_function": "sum"
+                },
+                {
+                    "metric": "obj_bytes_downloaded",
+                    "unit": "Bytes",
+                    "label": "Bytes downloaded",
+                    "color": "default",
+                    "size": 6,
+                    "chart_type": "line",
+                    "y_label": "obj_bytes_downloaded",
+                    "aggregate_function": "sum"
+                },
+                {
+                    "metric": "obj_bytes_uploaded",
+                    "unit": "Bytes",
+                    "label": "Bytes uploaded",
+                    "color": "default",
+                    "size": 6,
+                    "chart_type": "line",
+                    "y_label": "obj_bytes_uploaded",
                     "aggregate_function": "sum"
                 },
                 {
@@ -56,31 +119,67 @@
                         "response_type"
                     ],
                     "aggregate_function": "sum"
-                },
+                }
+            ]
+        },
+        {
+            "id": 10,
+            "type": "standard",
+            "service_type": "objectstorage",
+            "label": "Endpoint Activity",
+            "group_by": [
+                "endpoint"
+            ],
+            "created": "2025-12-17T05:19:59",
+            "updated": "2026-04-14T05:37:37",
+            "widgets": [
                 {
-                    "metric": "obj_bytes_downloaded",
+                    "metric": "obj_bucket_size",
                     "unit": "Bytes",
-                    "label": "Bytes downloaded",
+                    "label": "Content Stored",
                     "color": "default",
                     "size": 6,
                     "chart_type": "line",
-                    "y_label": "obj_bytes_downloaded",
+                    "y_label": "obj_bucket_size",
                     "aggregate_function": "sum"
                 },
                 {
-                    "metric": "obj_bytes_uploaded",
-                    "unit": "Bytes",
-                    "label": "Bytes uploaded",
+                    "metric": "obj_bucket_num_objects",
+                    "unit": "Count",
+                    "label": "Number Of Objects",
                     "color": "default",
                     "size": 6,
                     "chart_type": "line",
-                    "y_label": "obj_bytes_uploaded",
+                    "y_label": "obj_bucket_num_objects",
                     "aggregate_function": "sum"
+                },
+                {
+                    "metric": "obj_requests_rps",
+                    "unit": "Count",
+                    "label": "Requests per second",
+                    "color": "default",
+                    "size": 6,
+                    "chart_type": "line",
+                    "y_label": "obj_requests_rps",
+                    "group_by": [
+                        "request_type"
+                    ],
+                    "aggregate_function": "sum"
+                },
+                {
+                    "metric": "obj_ttfb_average",
+                    "unit": "ms",
+                    "label": "Average Time To First Byte (TTFB)",
+                    "color": "default",
+                    "size": 6,
+                    "chart_type": "line",
+                    "y_label": "obj_ttfb_average",
+                    "aggregate_function": "avg"
                 },
                 {
                     "metric": "obj_egress_throughput",
                     "unit": "Bps",
-                    "label": "Egress Throughput",
+                    "label": "Egress Throughput ",
                     "color": "default",
                     "size": 6,
                     "chart_type": "line",
@@ -98,52 +197,29 @@
                     "aggregate_function": "sum"
                 },
                 {
-                    "metric": "obj_ttfb_average",
-                    "unit": "ms",
-                    "label": "First Byte Latency",
-                    "color": "default",
-                    "size": 6,
-                    "chart_type": "line",
-                    "y_label": "obj_ttfb_average",
-                    "aggregate_function": "avg"
-                }
-            ]
-        },
-        {
-            "id": 10,
-            "type": "standard",
-            "service_type": "objectstorage",
-            "label": "Object Storage usage per endpoint",
-            "group_by": [
-                "endpoint"
-            ],
-            "created": "2025-12-17T05:19:59",
-            "updated": "2025-12-17T05:19:59",
-            "widgets": [
-                {
-                    "metric": "obj_bucket_size",
+                    "metric": "obj_bytes_downloaded",
                     "unit": "Bytes",
-                    "label": "Content Stored Per Endpoint",
+                    "label": "Bytes Downloaded",
                     "color": "default",
                     "size": 6,
                     "chart_type": "line",
-                    "y_label": "obj_bucket_size",
+                    "y_label": "obj_bytes_downloaded",
                     "aggregate_function": "sum"
                 },
                 {
-                    "metric": "obj_bucket_num_objects",
-                    "unit": "Count",
-                    "label": "Total number of objects per endpoint",
+                    "metric": "obj_bytes_uploaded",
+                    "unit": "Bytes",
+                    "label": "Bytes Uploaded",
                     "color": "default",
                     "size": 6,
                     "chart_type": "line",
-                    "y_label": "obj_bucket_num_objects",
+                    "y_label": "obj_bytes_uploaded",
                     "aggregate_function": "sum"
                 },
                 {
                     "metric": "obj_requests_num",
                     "unit": "Count",
-                    "label": "Total number of requests per endpoint",
+                    "label": "Total Requests",
                     "color": "default",
                     "size": 6,
                     "chart_type": "line",
@@ -156,7 +232,7 @@
                 {
                     "metric": "obj_responses_num",
                     "unit": "Count",
-                    "label": "Total number of responses per endpoint",
+                    "label": "Total Responses",
                     "color": "default",
                     "size": 6,
                     "chart_type": "line",
@@ -165,56 +241,6 @@
                         "response_type"
                     ],
                     "aggregate_function": "sum"
-                },
-                {
-                    "metric": "obj_bytes_uploaded",
-                    "unit": "Bytes",
-                    "label": "Bytes uploaded per endpoint",
-                    "color": "default",
-                    "size": 6,
-                    "chart_type": "line",
-                    "y_label": "obj_bytes_uploaded",
-                    "aggregate_function": "sum"
-                },
-                {
-                    "metric": "obj_bytes_downloaded",
-                    "unit": "Bytes",
-                    "label": "Bytes downloaded per endpoint",
-                    "color": "default",
-                    "size": 6,
-                    "chart_type": "line",
-                    "y_label": "obj_bytes_downloaded",
-                    "aggregate_function": "sum"
-                },
-                {
-                    "metric": "obj_egress_throughput",
-                    "unit": "Bps",
-                    "label": "Egress Throughput per endpoint",
-                    "color": "default",
-                    "size": 6,
-                    "chart_type": "line",
-                    "y_label": "obj_egress_throughput",
-                    "aggregate_function": "sum"
-                },
-                {
-                    "metric": "obj_ingress_throughput",
-                    "unit": "Bps",
-                    "label": "Ingress Throughput per endpoint",
-                    "color": "default",
-                    "size": 6,
-                    "chart_type": "line",
-                    "y_label": "obj_ingress_throughput",
-                    "aggregate_function": "sum"
-                },
-                {
-                    "metric": "obj_ttfb_average",
-                    "unit": "ms",
-                    "label": "Average TTFB latency over the endpoint",
-                    "color": "default",
-                    "size": 6,
-                    "chart_type": "line",
-                    "y_label": "obj_ttfb_average",
-                    "aggregate_function": "avg"
                 }
             ]
         }

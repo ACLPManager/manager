@@ -127,7 +127,7 @@ describe('Integration Tests for Linode Dashboard Preferences', () => {
     ui.button.findByTitle('Filters').click();
 
     // Verify that the applied filters
-    cy.get('[data-qa-applied-filter-id="applied-filter"]')
+    cy.get('[data-testid="applied-filter"]')
       .should('be.visible')
       .within(() => {
         cy.get(`[data-qa-value="Region US, Chicago, IL"]`)
@@ -206,7 +206,7 @@ describe('Integration Tests for Linode Dashboard Preferences', () => {
       .click();
 
     // Verify none of these applied filters exist after clear
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').should('not.exist');
+    cy.get('[data-testid="applied-filter"]').should('not.exist');
     cy.wait('@updateDashbaordPreference').then(({ request, response }) => {
       const responseBody =
         response?.body &&
@@ -233,7 +233,7 @@ describe('Integration Tests for Linode Dashboard Preferences', () => {
     ui.button.findByTitle('Filters').should('be.visible').click();
 
     // Verify none of these applied filters exist after clear
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="Region US, Chicago, IL"]').should('not.exist');
       cy.get(`[data-qa-value="Linode Label(s) ${resource}"]`).should(
         'not.exist'
@@ -276,7 +276,7 @@ describe('Integration Tests for Linode Dashboard Preferences', () => {
 
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="Region US, Chicago, IL"]').should('be.visible');
       cy.get(`[data-qa-value="Linode Label(s) ${resource}"]`).should(
         'not.exist'

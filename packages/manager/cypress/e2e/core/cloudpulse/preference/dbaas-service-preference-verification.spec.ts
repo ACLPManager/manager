@@ -213,7 +213,7 @@ describe('Integration Tests for DBaaS Dashboard Preferences', () => {
     ui.button.findByTitle('Filters').click();
 
     // Verify that the applied filters
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="Database Engine MySQL"]').and(
         'have.text',
         'MySQL'
@@ -305,7 +305,7 @@ describe('Integration Tests for DBaaS Dashboard Preferences', () => {
       .click();
 
     // Verify none of these applied filters exist after clear
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').should('not.exist');
+    cy.get('[data-testid="applied-filter"]').should('not.exist');
     cy.wait('@updateDashbaordPreference').then(({ request, response }) => {
       const responseBody =
         response?.body &&
@@ -332,7 +332,7 @@ describe('Integration Tests for DBaaS Dashboard Preferences', () => {
     ui.button.findByTitle('Filters').should('be.visible').click();
 
     // Verify none of these applied filters exist after clear
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="Database Engine MySQL"]').should('not.exist');
       cy.get('[data-qa-value="Region US, Chicago, IL"]').should('not.exist');
       cy.get('[data-qa-value="Node Type Primary"]').should('not.exist');
@@ -379,7 +379,7 @@ describe('Integration Tests for DBaaS Dashboard Preferences', () => {
     ui.button.findByTitle('Filters').should('be.visible').click();
 
     // Verify none of these applied filters exist after clear
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="Database Engine MySQL"]').should('be.visible');
       cy.get('[data-qa-value="Region US, Chicago, IL"]').should('not.exist');
       cy.get('[data-qa-value="Node Type Primary"]').should('not.exist');
@@ -425,7 +425,7 @@ describe('Integration Tests for DBaaS Dashboard Preferences', () => {
 
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="Database Engine MySQL"]').should('be.visible');
       cy.get('[data-qa-value="Region US, Chicago, IL"]').should('be.visible');
       cy.get('[data-qa-value="Node Type Primary"]').should('not.exist');
@@ -473,7 +473,7 @@ describe('Integration Tests for DBaaS Dashboard Preferences', () => {
 
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="Database Engine MySQL"]').should('be.visible');
       cy.get('[data-qa-value="Region US, Chicago, IL"]').should('be.visible');
       cy.get('[data-qa-value="Node Type Primary"]').should('not.exist');

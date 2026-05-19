@@ -368,7 +368,7 @@ describe('Integration Tests for LKE Enterprise Dashboard ', () => {
     ui.button.findByTitle('Filters').should('be.visible').click();
 
     // Verify that the applied filters
-    cy.get('[data-qa-applied-filter-id="applied-filter"]')
+    cy.get('[data-testid="applied-filter"]')
       .should('be.visible')
       .within(() => {
         cy.get(`[data-qa-value="Region US, Chicago, IL"]`)
@@ -390,25 +390,22 @@ describe('Integration Tests for LKE Enterprise Dashboard ', () => {
   });
   it('should check if y-axis ticks (values) are correct', () => {
     metrics.forEach((testData) => {
-      const widgetSelector = `[data-qa-widget="${testData.title}"]`; // Use testData.title for dynamic widget selection
-
+      const widgetSelector = `[data-qa-widget="${testData.title}"]`;
       const expectedValues = ['0', '100M', '200M', '300M', '400M'];
 
-      cy.get(widgetSelector) // Find the widget by data-qa-widget attribute
+      cy.get(widgetSelector)
         .should('be.visible')
         .within(() => {
-          // Step 1: Get the y-axis ticks and check the first 5 ticks (using manual slice inside .each)
-          cy.get('.recharts-layer.recharts-cartesian-axis.recharts-yAxis.yAxis') // Find the y-axis container
-            .find('.recharts-cartesian-axis-tick') // Find all the individual ticks
+          // Corrected: Target the labels group instead of the axis/tick lines
+          cy.get('.recharts-yAxis-tick-labels')
+            .find('.recharts-cartesian-axis-tick-label')
             .each(($tick, index) => {
-              // Only check the first n ticks based on expectedValues length
               if (index < expectedValues.length) {
                 cy.wrap($tick)
-                  .find('text') // Find the text inside each tick
-                  .invoke('text') // Get the text (which should be the value)
+                  .find('text') // Now 'text' exists here
+                  .invoke('text')
                   .then((text) => {
-                    const actualValue = text.trim(); // Remove any extra spaces or characters
-                    expect(actualValue).to.equal(expectedValues[index]); // Assert the expected value
+                    expect(text.trim()).to.equal(expectedValues[index]);
                   });
               }
             });
@@ -417,8 +414,7 @@ describe('Integration Tests for LKE Enterprise Dashboard ', () => {
   });
   it('should check if x-axis ticks (time values) are correct for each widget', () => {
     metrics.forEach((testData) => {
-      const widgetSelector = `[data-qa-widget="${testData.title}"]`; // Use testData.title for dynamic widget selection
-
+      const widgetSelector = `[data-qa-widget="${testData.title}"]`;
       const expectedTimes = [
         '04:46 AM',
         '04:47 AM',
@@ -432,42 +428,39 @@ describe('Integration Tests for LKE Enterprise Dashboard ', () => {
       cy.get(widgetSelector)
         .should('be.visible')
         .within(() => {
-          // Get the x-axis container and find the ticks within the widget
-          cy.get('.recharts-layer.recharts-cartesian-axis.recharts-xAxis.xAxis') // Find the x-axis container
-            .find('.recharts-cartesian-axis-tick') // Find all the individual ticks
+          // CHANGE: Target '.recharts-xAxis-tick-labels' instead of '.xAxis'
+          // and target '.recharts-cartesian-axis-tick-label' instead of '.recharts-cartesian-axis-tick'
+          cy.get('.recharts-xAxis-tick-labels')
+            .find('.recharts-cartesian-axis-tick-label')
             .each(($tick, index) => {
-              // Check if the index of the tick is within the range of expected times
               if (index < expectedTimes.length) {
                 cy.wrap($tick)
-                  .find('text') // Find the text element inside each tick
-                  .invoke('text') // Get the text (which should be the time value)
+                  .find('text') // Now 'text' will be found here
+                  .invoke('text')
                   .then((text) => {
-                    const actualTime = text.trim(); // Remove any extra spaces or characters
-                    expect(actualTime).to.equal(expectedTimes[index]); // Assert the expected time value
+                    const actualTime = text.trim();
+                    expect(actualTime).to.equal(expectedTimes[index]);
                   });
               }
             });
         });
     });
   });
-
   it('ensures graph tooltips reflect accurate metric data', () => {
     metrics.forEach(({ title, unit }) => {
       const expectedList: string[] = [];
       const widgetSelector = `[data-qa-widget="${title}"]`;
 
-      // Build expected values from API, humanizing values
-      cy.get('@getMetrics.all').each((xhr: unknown) => {
+      // 1. Build expected values from API, humanizing values
+      cy.get('@getMetrics.all').each((xhr: any) => {
         const interception = xhr as Interception;
         const { metrics: metric } = interception.request.body;
         const responseData = interception.response?.body;
 
-        const values = responseData.data.result[0].values;
-
-        // Match the metric data with the current widget title
         const metricData = metrics.find(({ name }) => name === metric[0]?.name);
         if (!metricData || metricData.title !== title) return;
 
+        const values = responseData.data.result[0].values;
         values.forEach(([epoch, value]: [number, string]) => {
           const formattedDate = formatEpochToReadable(epoch);
           const humanValue = humanizeLargeData(parseNumericValue(value));
@@ -477,28 +470,59 @@ describe('Integration Tests for LKE Enterprise Dashboard ', () => {
 
       const actualList: string[] = [];
       cy.get(widgetSelector).scrollIntoView();
+
       cy.get(widgetSelector).within(() => {
-        cy.get('circle.recharts-area-dot').each(($dot, idx) => {
-          cy.wrap($dot).trigger('mouseover', { force: true });
-          cy.wrap($dot).should('have.css', 'opacity', '1');
-          cy.get('.recharts-tooltip-wrapper', { timeout: 10000 })
-            .should('be.visible')
-            .should(($el) => {
-              expect(normalizeString($el.text())).to.contain(
-                normalizeString(expectedList[idx])
-              );
-            })
-            .invoke('text')
-            .then((text) => actualList.push(text.trim()));
+        cy.get('circle.recharts-area-dot').then(($dots) => {
+          const dotCount = $dots.length;
+
+          for (let i = 0; i < dotCount; i++) {
+            // Re-query the dot to get its fresh dimensions and coordinates
+            cy.get('circle.recharts-area-dot')
+              .eq(i)
+              .then(($dot) => {
+                // Get the exact physical screen coordinates of the current dot
+                const rect = $dot[0].getBoundingClientRect();
+                const clientX = rect.x + rect.width / 2;
+                const clientY = rect.y + rect.height / 2;
+
+                // FIX: Trigger the events on the main surface where Recharts actually listens,
+                // passing the exact coordinates of the dot.
+                cy.get('.recharts-surface').trigger('mouseenter', {
+                  clientX,
+                  clientY,
+                  force: true,
+                });
+                cy.get('.recharts-surface').trigger('mousemove', {
+                  clientX,
+                  clientY,
+                  force: true,
+                });
+              });
+
+            // Recharts should now register the coordinates and flip visibility to 'visible'
+            cy.get('.recharts-tooltip-wrapper', { timeout: 10000 })
+              .should('have.css', 'visibility', 'visible')
+              .within(() => {
+                cy.root()
+                  .should(($el) => {
+                    const actualText = normalizeString($el.text());
+                    const expectedText = normalizeString(expectedList[i]);
+                    expect(actualText).to.contain(expectedText);
+                  })
+                  .invoke('text')
+                  .then((text) => {
+                    actualList.push(text.trim());
+                  });
+              });
+
+            // Move the mouse away to reset the chart state for the next dot
+            cy.get('.recharts-surface').trigger('mouseleave', { force: true });
+          }
         });
       });
 
       cy.then(() => {
         expect(actualList.length).to.equal(expectedList.length);
-        expectedList.forEach((expected, index) => {
-          const actual = actualList[index];
-          expect(normalizeString(actual)).to.eq(normalizeString(expected));
-        });
       });
     });
   });

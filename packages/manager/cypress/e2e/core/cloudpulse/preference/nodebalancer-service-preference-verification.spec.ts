@@ -143,7 +143,7 @@ describe('Integration Tests for NodeBalancer Dashboard Preferences', () => {
     ui.button.findByTitle('Filters').click();
 
     // Verify that the applied filters
-    cy.get('[data-qa-applied-filter-id="applied-filter"]')
+    cy.get('[data-testid="applied-filter"]')
       .should('be.visible')
       .within(() => {
         cy.get(`[data-qa-value="Region US, Newark, NJ, USA"]`)
@@ -236,7 +236,7 @@ describe('Integration Tests for NodeBalancer Dashboard Preferences', () => {
       .click();
 
     // Verify none of these applied filters exist after clear
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').should('not.exist');
+    cy.get('[data-testid="applied-filter"]').should('not.exist');
     cy.wait('@updateDashbaordPreference').then(({ request, response }) => {
       const responseBody =
         response?.body &&
@@ -263,7 +263,7 @@ describe('Integration Tests for NodeBalancer Dashboard Preferences', () => {
     ui.button.findByTitle('Filters').should('be.visible').click();
 
     // Verify none of these applied filters exist after clear
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       cy.get('[data-qa-value="US, Newark, NJ, USA"]').should('not.exist');
       cy.get(`[data-qa-value="Nodebalancers: ${resource}"]`).should(
         'not.exist'
@@ -310,7 +310,7 @@ describe('Integration Tests for NodeBalancer Dashboard Preferences', () => {
 
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       // Region chip
       cy.get('[data-qa-value="Region US, Newark, NJ, USA"]').should(
         'be.visible'
@@ -366,7 +366,7 @@ describe('Integration Tests for NodeBalancer Dashboard Preferences', () => {
 
     ui.button.findByTitle('Filters').should('be.visible').click();
 
-    cy.get('[data-qa-applied-filter-id="applied-filter"]').within(() => {
+    cy.get('[data-testid="applied-filter"]').within(() => {
       // Region chip
       cy.get('[data-qa-value="Region US, Newark, NJ, USA"]').should(
         'be.visible'
